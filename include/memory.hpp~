@@ -1,0 +1,9 @@
+#define ROM_SIZE = 1024*1024*8 // 8MiB
+
+class Memory{
+
+    uint8[ROM_SIZE] rom;
+    void load_cartridge(std:str path);
+    uint8 get_instruction(uint8 pc);
+
+}
