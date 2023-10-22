@@ -1,3 +1,6 @@
+#include <cstddef>
+#include <cstdint>
+#include <stdint.h>
 #include <stdio.h>
 // #include <stdlib.h>
 #include <fstream>
@@ -9,8 +12,11 @@
 
 // http://www.z80.info/decoding.htm
 
+std::string input_path = "../rom/tetris.gb";
+
 int main() {
-  std::string input_path = "../rom/tetris.gb";
+
+  uint8_t *p_rom_buffer;
 
   // Create input file stream
   std::ifstream input(input_path, std::ios::binary);
@@ -21,34 +27,31 @@ int main() {
   }
 
   input.seekg(0, std::ios::end);
-  std::size_t size = input.tellg(); // pbuf->pubseekoff(0, input.end, input.in);
+  std::size_t size = input.tellg();
 
-  std::cout << "ROM size: " << size << "bytes" << std::endl;
+  std::cout << "ROM size: " << size << " bytes" << std::endl;
 
-  char *buffer = new char[size];
+
   std::filebuf *pbuf = input.rdbuf();
 
   pbuf->pubseekpos(0, input.in);
+
+  char *buffer = new char[size];
   pbuf->sgetn(buffer, size);
+  p_rom_buffer = (uint8_t *)buffer;
+
   input.close();
 
-  //   std::cout.write(buffer, size);
-  //   std::cout << std::endl;
-
-  //   std::cout << (unsigned int) buffer[0] << std::endl;
-
-  unsigned char *pbuffer = (unsigned char *)buffer;
-
   for (int pc = 0; pc < size; ++pc) {
-    int instruction = int(pbuffer[pc]);
-    decode(instruction);
-    std::cout << std::setw(2) << std::hex << std::setfill('0')
-              << int(pbuffer[pc]) << " ";
+    int instruction = int(p_rom_buffer[pc]);
+	std::cout << pc << "\t";
+    pc += decode(instruction);
+    // break;
+    // std::cout << std::setw(2) << std::hex << std::setfill('0')
+    //           << int(p_rom_buffer[pc]) << " ";
   }
 
   std::cout << std::endl;
-
-  //   std::cout << int(pbuffer[0]) << std::endl;
 
   delete[] buffer;
 
