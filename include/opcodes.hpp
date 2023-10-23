@@ -1,3 +1,6 @@
+#ifndef OPCODES_H
+#define OPCODES_H
+
 // Specify the instruction byte structure
 // O -> Opcode
 // J -> Relative jump opcode
@@ -277,3 +280,5 @@ const Z80_opcodes opcodes[] = {
     {1, O, "UNK"},
     {1, ON, "RST n", 32, &nop},
 };
+
+#endif

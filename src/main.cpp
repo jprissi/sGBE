@@ -8,6 +8,7 @@
 #include <iostream>
 #include <string>
 
+#include "cpu.hpp"
 #include "opcodes.hpp"
 
 // http://www.z80.info/decoding.htm
@@ -41,11 +42,11 @@ int main() {
   p_rom_buffer = (uint8_t *)buffer;
 
   input.close();
-
+  cpu cpu;
   for (int pc = 0; pc < size; ++pc) {
     int instruction = int(p_rom_buffer[pc]);
 	std::cout << pc << "\t";
-    pc += decode(instruction);
+    pc += cpu.decode((uint8_t)instruction);
     // break;
     // std::cout << std::setw(2) << std::hex << std::setfill('0')
     //           << int(p_rom_buffer[pc]) << " ";

@@ -4,8 +4,8 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 file( GLOB SOURCES *.cpp )
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra" )
-
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra" )
+set(CMAKE_CXX_FLAGS "-Wall" )
 
 set( MAIN_SOURCES main.cpp )
 set ( MAIN_EXE_NAME gbe )
