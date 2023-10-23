@@ -13,6 +13,8 @@
 
 // http://www.z80.info/decoding.htm
 
+#define ROM_OFFSET 0x00 // Cartridge start at address 0
+
 std::string input_path = "../rom/tetris.gb";
 
 int main() {
@@ -32,21 +34,24 @@ int main() {
 
   std::cout << "ROM size: " << size << " bytes" << std::endl;
 
-
   std::filebuf *pbuf = input.rdbuf();
 
   pbuf->pubseekpos(0, input.in);
 
-  char *buffer = new char[size];
+  // char *buffer = new char[size];
+  CPU *cpu = new CPU();
+  uint8_t *rom = cpu->m.rom;
+  char * buffer = (char*)(rom+ROM_OFFSET);
   pbuf->sgetn(buffer, size);
   p_rom_buffer = (uint8_t *)buffer;
 
   input.close();
-  cpu cpu;
-  for (int pc = 0; pc < size; ++pc) {
+  
+
+  for (int pc = cpu->PC; pc < size; ++pc) {
     int instruction = int(p_rom_buffer[pc]);
-	std::cout << pc << "\t";
-    pc += cpu.decode((uint8_t)instruction);
+    std::cout << pc << "\t";
+    pc += cpu->decode((uint8_t)instruction);
     // break;
     // std::cout << std::setw(2) << std::hex << std::setfill('0')
     //           << int(p_rom_buffer[pc]) << " ";

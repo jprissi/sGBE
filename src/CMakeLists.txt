@@ -6,6 +6,7 @@ file( GLOB SOURCES *.cpp )
 
 # set(CMAKE_CXX_FLAGS "-Wall -Wextra" )
 set(CMAKE_CXX_FLAGS "-Wall" )
+set(CMAKE_CXX_FLAGS "-g" )
 
 set( MAIN_SOURCES main.cpp )
 set ( MAIN_EXE_NAME gbe )
