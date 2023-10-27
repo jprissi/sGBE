@@ -19,6 +19,8 @@ std::string input_path = "../rom/tetris.gb";
 
 int main() {
 
+  //Load ROM to memory
+
   uint8_t *p_rom_buffer;
 
   // Create input file stream
@@ -47,17 +49,31 @@ int main() {
 
   input.close();
   
+  int MAX_CYCLES = 12800;
+  for (int cycles = 0; cycles < MAX_CYCLES;) {
 
-  for (int pc = cpu->PC; pc < size; ++pc) {
-    int instruction = int(p_rom_buffer[pc]);
-    std::cout << pc << "\t";
-    pc += cpu->decode((uint8_t)instruction);
-    // break;
-    // std::cout << std::setw(2) << std::hex << std::setfill('0')
-    //           << int(p_rom_buffer[pc]) << " ";
+    std::cout << cpu->PC << "\t";
+
+    //Fetch
+    uint8_t instruction = uint8_t(p_rom_buffer[cpu->PC]);
+    // (cpu->PC)++
+
+    // Decode + Run
+    // Multiple ways to implement the dispatch loop :
+    // - big switch statement
+    // - computed go to
+    // - ???
+    int num_args = cpu->decode(instruction);
+    
+    
+    // std::cout << cpu->PC;
+    cycles += 1;
+    cpu->PC += num_args;
+    
   }
 
   std::cout << std::endl;
+  std::cout << "TIMEOUT!" << std::endl;
 
   delete[] buffer;
 
