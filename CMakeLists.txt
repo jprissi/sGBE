@@ -9,3 +9,4 @@ project(GBE)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/src bin)
 target_include_directories(gbe PRIVATE include)
+

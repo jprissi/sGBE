@@ -29,39 +29,41 @@ uint8_t CPU::decode(uint8_t opcode)
                     &this->H, &this->L, reinterpret_cast<uint8_t *>(&this->HL), &this->A};
 
   std::string mnemonic("");
-  int args;
+  int args(0);
 
-  // Handle grouped instructions first and then use LUT if necessary (move
-  // grouped instruction to their own 2D LUT later on)
-  if (x == 0 && z == 6)
-  {
-    // 8 bit load immediate
-    // cycles = 8;
-    char *reg = (char *)r[y];
+  if (sizeof(opcodes)/sizeof(*opcodes) - 1 < opcode){
+      std::cout << std::endl;
+      std::cout << "Opcode ";
+      std::cout << std::hex << (int)opcode;
+      std::cout << std::dec << " not in opcodes!" << std::endl;
+      exit(1);
+  }
 
-    // Then LD
-    mnemonic.append("LD ");
-    mnemonic.append(reg);
-    mnemonic.append(",n");
-    args = 1;
-  }
-  else if (opcodes[opcode].mn == "UNK")
-  {
-    // Handle opcodes that are not implemented
-    std::cout << std::endl;
-    std::cerr << "Instruction not implemented" << std::endl;
-    std::cout << std::hex << (int)x << "; " << (int)y << "; " << (int)z
-              << std::endl;
-    exit(1);
-  }
-  else
-  {
-    // Default opcode table
+  // if (opcodes[opcode].mn == "UNK")
+  // {
+  //   // Handle opcodes that are not implemented
+  //   std::cout << std::endl;
+  //   std::cerr << "Instruction not implemented" << std::endl;
+  //   std::cout << std::hex << (int)x << "; " << (int)y << "; " << (int)z
+  //             << std::endl;
+  //   exit(1);
+  // }
+
+    // Default opcode table    
+    // std::cout << opcode << std::endl << std::flush;
+    
     mnemonic = (char *)opcodes[opcode].mn;
     args = opcodes[opcode].length - 1;
-  }
+    
+    auto func = opcodes[opcode].func;
 
-  std::cout << mnemonic << "\t";
+    std::cout << mnemonic << "\t";
+
+    (*func)(*this);
+
+    
+
+
 
   if (args > 0)
   {
@@ -78,16 +80,3 @@ uint8_t CPU::decode(uint8_t opcode)
 
   return args;
 }
-
-// int cycles = 0;
-// void execute(unsigned char opcode) {
-//   Z80_opcodes instruction = opcodes[opcode];
-//   uint8_t num_arguments = instruction.length - 1;
-
-//   char args[] = "aaa";
-//   instruction.func();
-
-//   cycles += instruction.cycles;
-// }
-
-void nop(){};
