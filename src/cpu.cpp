@@ -8,7 +8,30 @@
 #include <stdio.h>
 #include <sys/types.h>
 
-// CPU::CPU(){};
+
+void CPU::push(uint16_t value){
+  this->SP--;
+  this->m.rom[this->SP] = value;
+}
+
+void CPU::to_16bits(uint8_t in1, uint8_t in2, uint16_t &out){
+  out = (in1 << 8) | in2;
+}
+void CPU::to_8bits(uint16_t in, uint8_t &out1, uint8_t &out2){
+  out1 = (in & (0b1111 << 4)) >> 4;
+  out2 = in & 0b1111;
+}
+
+void CPU::extract_grouping(uint8_t opcode, uint8_t &x, uint8_t &y, uint8_t &z){
+  // Find instruction groupings
+  // uint8_t x, y, z;
+  x = opcode >> 6;
+  y = (opcode >> 3) & 7;
+  z = opcode & 7;
+
+  // const char *r[8] = {"B", "C", "D", "E", "H", "L", "(HL)", "A"};
+  // 
+}
 
 uint8_t CPU::decode(uint8_t opcode)
 {
@@ -16,20 +39,9 @@ uint8_t CPU::decode(uint8_t opcode)
 
   std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)opcode;
   std::cout << std::dec << " (" << std::setw(3) << (int)opcode << ")\t";
-  // << std::endl;
-
-  // Find instruction groupings
-  uint8_t x, y, z;
-  x = opcode >> 6;
-  y = (opcode >> 3) & 7;
-  z = opcode & 7;
-
-  const char *r[8] = {"B", "C", "D", "E", "H", "L", "(HL)", "A"};
-  uint8_t *r2[8] = {&this->B, &this->C, &this->D, &this->E,
-                    &this->H, &this->L, reinterpret_cast<uint8_t *>(&this->HL), &this->A};
 
   std::string mnemonic("");
-  int args(0);
+  int num_args, cycles = 0;
 
   if (sizeof(opcodes)/sizeof(*opcodes) - 1 < opcode){
       std::cout << std::endl;
@@ -38,45 +50,40 @@ uint8_t CPU::decode(uint8_t opcode)
       std::cout << std::dec << " not in opcodes!" << std::endl;
       exit(1);
   }
-
-  // if (opcodes[opcode].mn == "UNK")
-  // {
-  //   // Handle opcodes that are not implemented
-  //   std::cout << std::endl;
-  //   std::cerr << "Instruction not implemented" << std::endl;
-  //   std::cout << std::hex << (int)x << "; " << (int)y << "; " << (int)z
-  //             << std::endl;
-  //   exit(1);
-  // }
-
-    // Default opcode table    
-    // std::cout << opcode << std::endl << std::flush;
     
-    mnemonic = (char *)opcodes[opcode].mn;
-    args = opcodes[opcode].length - 1;
-    
-    auto func = opcodes[opcode].func;
+  opcodes_s current_op = opcodes[opcode];
 
-    std::cout << mnemonic << "\t";
+  mnemonic = (char *)current_op.mn;
+  num_args = current_op.length - 1;
+  cycles = current_op.cycles;
+  auto func = current_op.func;
 
-    (*func)(*this);
+  std::cout << mnemonic << "\t";
 
-    
+  uint8_t args[2] = {NULL, NULL};
+  // uint8_t arg2 = NULL;
 
-
-
-  if (args > 0)
+  if (num_args > 0)
   {
     std::cout << "args: ";
-    for (int i = 1; i < args+1; ++i)
+    for (int i = 1; i < num_args+1; ++i)
     {
       // Starting from 1 to remove current opcode
       // PC + 1 (current PC?)
-      std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)this->m.rom[this->PC + 1 + i] << " ";
+      std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)this->m.rom[this->PC + i] << " ";
+      args[i-1] = (uint8_t)this->m.rom[this->PC + i];
     }
   }
+
+  // Run instruction
+  (*func)(*this, args[0], args[1]);
+  this->total_cycles += cycles;
+    
+
+  this->PC += 1 + num_args;
+
   std::cout << std::dec << std::flush;
   std::cout << std::endl;
 
-  return args;
+  return num_args;
 }

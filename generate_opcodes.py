@@ -35,33 +35,42 @@ struct opcodes_s { // The opcode value is implicit in the array index
   const char *mn; // Instruction mnemonic, not including data
   uint8_t length;
   uint8_t cycles;
-  void (*func)(CPU &cpu); // Implement minimal set of mnemonics
+  void (*func)(CPU &cpu, uint8_t arg1, uint8_t arg2); // Implement minimal set of mnemonics
 };\n
 """
 implemented = [
     "NOP",
     "JP",
+    "LD",
+    "INC",
+    "SUB",
+    "SBC",
+    "DEC",
+    "JR",
+    "CPL",
+    "CALL",
+    "XOR"
 ]
 
 for instr in unique_instructions:
     if instr in implemented:
-        file += "  void {}(CPU &cpu);\n\n".format(instr)
+        file += "  void {}(CPU &cpu, uint8_t arg1, uint8_t arg2);\n\n".format(instr)
 
 file += """  uint8_t decode(unsigned char opcode);
 
-  void UNK(CPU &cpu);
+  void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
 // Array, hex opcode is array address
   const opcodes_s opcodes[] = {
 """
 
 for k,v in data['unprefixed'].items():
-    mnemonic, length = v['mnemonic'], str(v['length'])
+    mnemonic, length, cycles = v['mnemonic'], str(v['length']), str(v['cycles'][0])
     function_name = f"&{mnemonic}"
     print(mnemonic)
     if mnemonic not in implemented:
         function_name="&UNK"
-    s = f"  {{{k}, \"{mnemonic}\", {length}, 4, {function_name}}}"
+    s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}}}"
     file += f"\t{s},\n"
     # print(k, v['mnemonic'], v['length'])
     # break   
@@ -74,3 +83,5 @@ print(file)
 
 with open('include/opcodes.hpp', 'w') as f:
     f.write(file)
+
+print(f"Implemented {len(implemented)} / {len(unique_instructions)}")

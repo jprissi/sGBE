@@ -46,20 +46,22 @@ int main() {
   p_rom_buffer = (uint8_t *)buffer;
 
   input.close();
-  
-
-  for (int pc = cpu->PC; pc < size; ++pc) {
-    int instruction = int(p_rom_buffer[pc]);
-    std::cout << pc << "\t";
-    pc += cpu->decode((uint8_t)instruction);
+  int MAX_INSTRUCTIONS = 1000;
+  for (int i=0; i<MAX_INSTRUCTIONS; i++){
+  // for (int pc = cpu->PC; pc < size; ++pc) {
+    int instruction = int(p_rom_buffer[cpu->PC]);
+    std::cout << std::hex << cpu->PC << "\t";
+    // cpu->PC += 
+    cpu->decode((uint8_t)instruction);
     // break;
     // std::cout << std::setw(2) << std::hex << std::setfill('0')
     //           << int(p_rom_buffer[pc]) << " ";
   }
 
-  std::cout << std::endl;
 
-  delete[] buffer;
+  std::cout << "Done!" << std::endl;
+
+  // delete[] buffer;
 
   return 0;
 }
