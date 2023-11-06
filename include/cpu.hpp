@@ -27,13 +27,19 @@ private:
   int32_t total_cycles = 0;
   
 public:
+  bool interrupts_enabled = true;
+  bool disable_interrupts_next = false; // Or use a counter instead
+
   void push(uint16_t value);
   uint16_t pop();
+
   uint8_t decode(uint8_t opcode);
   void extract_grouping(uint8_t opcode, uint8_t &x, uint8_t &y, uint8_t &z);
 
   void to_16bits(uint8_t in1, uint8_t in2, uint16_t &out);
   void to_8bits(uint16_t in, uint8_t &out1, uint8_t &out2);
+
+  void crash();
 
   uint8_t *registers[8] = {this->p_B, this->p_C, this->p_D, this->p_E, this->p_H, this->p_L, reinterpret_cast<uint8_t *>(&this->HL), &this->A};
   uint16_t *registers16[4] = {&this->BC,

@@ -7,11 +7,28 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <bitset>
 
+void CPU::crash(){
+  // std::cout << cause << std::endl;
+  std::cout << "\nCrash :\n===\n";
+  std::cout << "SP: 0x" << std::setw(4) << std::hex << (int)this->SP << std::endl;
+  std::bitset<8> x(this->flags);
+  std::cout << "flags = " << x  << std::endl;
+  std::cout << "A = 0x" << std::setw(2) << std::hex << (int)this->A << std::endl;
+  std::cout << "B = 0x" << std::setw(2) << std::hex << (int)(*this->p_B) << std::endl;
+  exit(1);
+}
 
 void CPU::push(uint16_t value){
   this->SP--;
   this->m.rom[this->SP] = value;
+}
+
+uint16_t CPU::pop(){
+  uint16_t value = this->m.rom[this->SP];
+  this->SP++;
+  return value;
 }
 
 void CPU::to_16bits(uint8_t in1, uint8_t in2, uint16_t &out){
@@ -38,7 +55,7 @@ uint8_t CPU::decode(uint8_t opcode)
   // http://www.z80.info/decoding.htm
 
   std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)opcode;
-  std::cout << std::dec << " (" << std::setw(3) << (int)opcode << ")\t";
+  // std::cout << std::dec << " (" << std::setw(3) << (int)opcode << ")\t";
 
   std::string mnemonic("");
   int num_args, cycles = 0;
@@ -52,13 +69,26 @@ uint8_t CPU::decode(uint8_t opcode)
   }
     
   opcodes_s current_op = opcodes[opcode];
+  bool prefixed = false;
+  uint8_t prefix;
+
+  if (current_op.mn == "PREFIX") {
+    // std::cout << "prefix" << std::endl;
+    prefixed = true;
+    prefix = opcode; // should be CB
+    opcode = this->m.rom[this->PC+1];
+    current_op = prefixed_opcodes[opcode];
+
+    std::cout << " " << std::hex << (int)opcode;
+    // exit(1);
+  }
+  std::cout << "\t";
 
   mnemonic = (char *)current_op.mn;
   num_args = current_op.length - 1;
   cycles = current_op.cycles;
   auto func = current_op.func;
-
-  // std::cout << std::hex << (int)opcode << std::endl;
+  
   std::cout << mnemonic << "\t";
 
   uint8_t args[2] = {NULL, NULL};

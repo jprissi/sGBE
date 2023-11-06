@@ -22,7 +22,9 @@ def get_instructions_list(opcodes_dict):
     
     return unique_instructions
 
-unique_instructions = get_instructions_list(data['unprefixed'])
+unique_unprefixed_instructions = get_instructions_list(data['unprefixed'])
+unique_cbprefixed_instructions = get_instructions_list(data['cbprefixed'])
+unique_instructions = list(unique_unprefixed_instructions) + list(unique_cbprefixed_instructions)
 
 file = """#ifndef OPCODES_H
 #define OPCODES_H
@@ -48,8 +50,16 @@ implemented = [
     "DEC",
     "JR",
     "CPL",
-    "CALL",
-    "XOR"
+    "CALL", "RET",
+    "XOR",
+    "DI", "EI",
+    "LDH",
+    "CP",
+    "OR",
+    "RST",
+
+    # CB-prefixed
+    "RES",
 ]
 
 for instr in unique_instructions:
@@ -88,8 +98,34 @@ for i in range(256):
     # print(k, v['mnemonic'], v['length'])
     # break   
 
-file += """};
+file += "};\n\n";
+file += "const opcodes_s prefixed_opcodes[] = {\n";
 
+for i in range(256):
+    k = format(i, '#04x')
+    
+    # Some opcodes have no instruction attached
+    if k not in data['cbprefixed']:
+        mnemonic, length, cycles = "UNK", str(0), str(0)
+        function_name = f"&{mnemonic}"
+        print(mnemonic)
+        s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}}}"
+        file += f"\t{s},\n"
+        continue
+
+    v=data['cbprefixed'][k]
+    # for k,v in data['unprefixed'].items():
+    mnemonic, length, cycles = v['mnemonic'], str(v['length']), str(v['cycles'][0])
+    function_name = f"&{mnemonic}"
+    print(mnemonic)
+    if mnemonic not in implemented:
+        function_name="&UNK"
+    s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}}}"
+    file += f"\t{s},\n"
+    # print(k, v['mnemonic'], v['length'])
+    # break   
+
+file += """};
 #endif"""
 
 print(file)

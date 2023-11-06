@@ -46,7 +46,7 @@ int main() {
   p_rom_buffer = (uint8_t *)buffer;
 
   input.close();
-  int MAX_INSTRUCTIONS = 1000;
+  int MAX_INSTRUCTIONS = 10000;
   for (int i=0; i<MAX_INSTRUCTIONS; i++){
   // for (int pc = cpu->PC; pc < size; ++pc) {
     int instruction = int(p_rom_buffer[cpu->PC]);
