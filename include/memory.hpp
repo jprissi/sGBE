@@ -1,3 +1,6 @@
+#ifndef MEMORY_H
+#define MEMORY_H
+
 #include <stdio.h>
 #include <string>
 #include <stdint.h>
@@ -15,3 +18,5 @@ public:
     Memory();
     uint8_t rom[ROM_SIZE];
 };
+
+#endif

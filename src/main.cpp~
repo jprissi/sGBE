@@ -1,7 +1,0 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-int main(){
-    std::cout << "a" << std::endl;
-    return 0;
-}

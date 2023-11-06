@@ -12,41 +12,41 @@ struct opcodes_s { // The opcode value is implicit in the array index
   void (*func)(CPU &cpu, uint8_t arg1, uint8_t arg2); // Implement minimal set of mnemonics
 };
 
-  void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
   void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
