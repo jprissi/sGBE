@@ -3,6 +3,9 @@
 #include <iostream>
 #include "cpu.hpp"
 
+#define CONST_ZERO_FLAG   (1 << 7)
+#define CONST_CARRY_FLAG  (1 << 4)
+
 void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2){
     // cpu.PC += 1;
 };
@@ -92,20 +95,59 @@ void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2){
     uint8_t opcode = cpu.m.rom[cpu.PC];
     uint8_t x, y, z;
     cpu.extract_grouping(opcode, x, y, z);
-    uint8_t q = y & (1 << 0);
+    
+    // uint8_t q = y & (1 << 0);
     uint8_t p = (y & 6) >> 1;
-
+    
+    bool zero = 0;
     if (z==5){
         // 8-bit dec
         cpu.registers[y]--;
-    } else if (z==3 and q==1){
+        if (cpu.registers[y] == 0) {zero = 1;};
+    } else if (z==3){
         //If DEC then q is automatically 1
         cpu.registers16[p]--;
+        if (cpu.registers16[p] == 0) {zero = 1;};
     }
+    cpu.flags = cpu.flags | CONST_ZERO_FLAG; // Z - set if result is zero
+    // C - not affected
+    // N - set
+    // H - set if borrow
 }
 
 void JR(CPU &cpu, uint8_t arg1, uint8_t arg2){
-    cpu.PC += arg1 - 2;
+    uint8_t opcode = cpu.m.rom[cpu.PC];
+    uint8_t x, y, z;
+    cpu.extract_grouping(opcode, x, y, z);
+    int8_t offset = arg1;
+    // std::cout << std::dec << i-2 << std::endl;
+    if (y == 3){
+        // JR n
+        cpu.PC += offset;
+        return;
+    }
+    // JR cc, n
+    
+    // z = cpu.flags;
+    // std::cout << "(flags " << std::hex << (int)cpu.flags << ")" << std::endl;
+    // std::cout << "(const " << std::hex << (int)CONST_ZERO_FLAG << ")" << std::endl;
+    // std::cout << "(const " << std::hex << (int)(cpu.flags & CONST_ZERO_FLAG) << ")" << std::endl;
+    switch (y-4)
+    {
+    case 0:
+        if (!(cpu.flags & CONST_ZERO_FLAG)){ cpu.PC += offset; }
+        break;
+    case 1:
+        if ((cpu.flags & CONST_ZERO_FLAG)){ cpu.PC += offset; }
+        break;
+    case 2:
+        if (!(cpu.flags & CONST_CARRY_FLAG)){ cpu.PC += offset; }
+        break;
+    case 3:
+        if ((cpu.flags & CONST_CARRY_FLAG)){ cpu.PC += offset;}
+        break;
+    };
+
 }
 
 void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2){

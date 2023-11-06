@@ -58,6 +58,7 @@ uint8_t CPU::decode(uint8_t opcode)
   cycles = current_op.cycles;
   auto func = current_op.func;
 
+  // std::cout << std::hex << (int)opcode << std::endl;
   std::cout << mnemonic << "\t";
 
   uint8_t args[2] = {NULL, NULL};

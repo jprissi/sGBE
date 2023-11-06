@@ -64,7 +64,20 @@ file += """  uint8_t decode(unsigned char opcode);
   const opcodes_s opcodes[] = {
 """
 
-for k,v in data['unprefixed'].items():
+for i in range(256):
+    k = format(i, '#04x')
+    
+    # Some opcodes have no instruction attached
+    if k not in data['unprefixed']:
+        mnemonic, length, cycles = "UNK", str(0), str(0)
+        function_name = f"&{mnemonic}"
+        print(mnemonic)
+        s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}}}"
+        file += f"\t{s},\n"
+        continue
+
+    v=data['unprefixed'][k]
+    # for k,v in data['unprefixed'].items():
     mnemonic, length, cycles = v['mnemonic'], str(v['length']), str(v['cycles'][0])
     function_name = f"&{mnemonic}"
     print(mnemonic)

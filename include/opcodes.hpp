@@ -12,27 +12,27 @@ struct opcodes_s { // The opcode value is implicit in the array index
   void (*func)(CPU &cpu, uint8_t arg1, uint8_t arg2); // Implement minimal set of mnemonics
 };
 
-  void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
   void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
+  void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
   void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   uint8_t decode(unsigned char opcode);
 
@@ -251,6 +251,7 @@ struct opcodes_s { // The opcode value is implicit in the array index
 	  {0xd0, "RET", 1, 20, &UNK},
 	  {0xd1, "POP", 1, 12, &UNK},
 	  {0xd2, "JP", 3, 16, &JP},
+	  {0xd3, "UNK", 0, 0, &UNK},
 	  {0xd4, "CALL", 3, 24, &CALL},
 	  {0xd5, "PUSH", 1, 16, &UNK},
 	  {0xd6, "SUB", 2, 8, &SUB},
@@ -258,24 +259,32 @@ struct opcodes_s { // The opcode value is implicit in the array index
 	  {0xd8, "RET", 1, 20, &UNK},
 	  {0xd9, "RETI", 1, 16, &UNK},
 	  {0xda, "JP", 3, 16, &JP},
+	  {0xdb, "UNK", 0, 0, &UNK},
 	  {0xdc, "CALL", 3, 24, &CALL},
+	  {0xdd, "UNK", 0, 0, &UNK},
 	  {0xde, "SBC", 2, 8, &SBC},
 	  {0xdf, "RST", 1, 16, &UNK},
 	  {0xe0, "LDH", 2, 12, &UNK},
 	  {0xe1, "POP", 1, 12, &UNK},
 	  {0xe2, "LD", 1, 8, &LD},
+	  {0xe3, "UNK", 0, 0, &UNK},
+	  {0xe4, "UNK", 0, 0, &UNK},
 	  {0xe5, "PUSH", 1, 16, &UNK},
 	  {0xe6, "AND", 2, 8, &UNK},
 	  {0xe7, "RST", 1, 16, &UNK},
 	  {0xe8, "ADD", 2, 16, &UNK},
 	  {0xe9, "JP", 1, 4, &JP},
 	  {0xea, "LD", 3, 16, &LD},
+	  {0xeb, "UNK", 0, 0, &UNK},
+	  {0xec, "UNK", 0, 0, &UNK},
+	  {0xed, "UNK", 0, 0, &UNK},
 	  {0xee, "XOR", 2, 8, &XOR},
 	  {0xef, "RST", 1, 16, &UNK},
 	  {0xf0, "LDH", 2, 12, &UNK},
 	  {0xf1, "POP", 1, 12, &UNK},
 	  {0xf2, "LD", 1, 8, &LD},
 	  {0xf3, "DI", 1, 4, &UNK},
+	  {0xf4, "UNK", 0, 0, &UNK},
 	  {0xf5, "PUSH", 1, 16, &UNK},
 	  {0xf6, "OR", 2, 8, &UNK},
 	  {0xf7, "RST", 1, 16, &UNK},
@@ -283,6 +292,8 @@ struct opcodes_s { // The opcode value is implicit in the array index
 	  {0xf9, "LD", 1, 8, &LD},
 	  {0xfa, "LD", 3, 16, &LD},
 	  {0xfb, "EI", 1, 4, &UNK},
+	  {0xfc, "UNK", 0, 0, &UNK},
+	  {0xfd, "UNK", 0, 0, &UNK},
 	  {0xfe, "CP", 2, 8, &UNK},
 	  {0xff, "RST", 1, 16, &UNK},
 };
