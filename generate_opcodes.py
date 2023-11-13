@@ -1,9 +1,8 @@
 """ Use pregenerated opcodes to generate our own C++ container for these """
 
 
-import os, sys
-# os.chdir(os.path.dirname(sys.argv[0])) # Dealing with CMAKE (https://stackoverflow.com/questions/49018868/how-do-i-make-cmake-run-a-python-script-before-building-in-order-to-generate-fi)
-print(os.getcwd())
+# import os, sys
+# print(os.getcwd())
 import json
 
 with open('doc/opcodes.json') as f:
@@ -16,10 +15,7 @@ def get_instructions_list(opcodes_dict):
         mnemonic, length = v['mnemonic'], v['length']
         # print(k, mnemonic, length)
         unique_instructions.append(mnemonic)
-        # if 'operand1' in v:
-            # print(v['operand1'])
     unique_instructions = set(unique_instructions)
-    
     return unique_instructions
 
 unique_unprefixed_instructions = get_instructions_list(data['unprefixed'])
@@ -38,28 +34,25 @@ struct opcodes_s { // The opcode value is implicit in the array index
   uint8_t length;
   uint8_t cycles;
   void (*func)(CPU &cpu, uint8_t arg1, uint8_t arg2); // Implement minimal set of mnemonics
+  char* label;
 };\n
 """
 implemented = [
     "NOP",
-    "JP",
-    "LD",
-    "INC",
-    "SUB",
-    "SBC",
-    "DEC",
-    "JR",
+    "JP", "JR",
+    "LD", "LDH",
+    "INC", "DEC",
+    "SUB", "SBC",
+    "ADD", "ADC", 
     "CPL",
-    "CALL", "RET",
-    "XOR",
+    "CALL", "RET", "PUSH", "POP",
+    "XOR", "AND", "OR",
     "DI", "EI",
-    "LDH",
     "CP",
-    "OR",
     "RST",
-
     # CB-prefixed
-    "RES",
+    "RES", "BIT", "RL", "RR", "RLA", "RRA", "SWAP", "SRL",
+    "SET"
 ]
 
 for instr in unique_instructions:
@@ -79,21 +72,27 @@ for i in range(256):
     
     # Some opcodes have no instruction attached
     if k not in data['unprefixed']:
-        mnemonic, length, cycles = "UNK", str(0), str(0)
+        mnemonic, length, cycles, operands = "UNK", str(0), str(0), []
         function_name = f"&{mnemonic}"
-        print(mnemonic)
-        s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}}}"
+        label = mnemonic + ", ".join(operands)
+        s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}, \"{label}\"}}"
         file += f"\t{s},\n"
         continue
 
     v=data['unprefixed'][k]
+    operands=[]
+    if 'operand1' in v.keys():
+        operands.append(v['operand1'])
+    if 'operand2' in v.keys():
+        operands.append(v['operand2'])
+
     # for k,v in data['unprefixed'].items():
     mnemonic, length, cycles = v['mnemonic'], str(v['length']), str(v['cycles'][0])
     function_name = f"&{mnemonic}"
-    print(mnemonic)
     if mnemonic not in implemented:
         function_name="&UNK"
-    s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}}}"
+    label = mnemonic + " " + ", ".join(operands)
+    s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}, \"{label}\"}}"
     file += f"\t{s},\n"
     # print(k, v['mnemonic'], v['length'])
     # break   
@@ -114,13 +113,19 @@ for i in range(256):
         continue
 
     v=data['cbprefixed'][k]
+    operands = []
+    if 'operand1' in v.keys():
+        operands.append(v['operand1'])
+    if 'operand2' in v.keys():
+        operands.append(v['operand2'])
     # for k,v in data['unprefixed'].items():
     mnemonic, length, cycles = v['mnemonic'], str(v['length']), str(v['cycles'][0])
+    label = mnemonic + " " + ", ".join(operands)
     function_name = f"&{mnemonic}"
     print(mnemonic)
     if mnemonic not in implemented:
         function_name="&UNK"
-    s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}}}"
+    s = f"  {{{k}, \"{mnemonic}\", {length}, {cycles}, {function_name}, \"{label}\"}}"
     file += f"\t{s},\n"
     # print(k, v['mnemonic'], v['length'])
     # break   

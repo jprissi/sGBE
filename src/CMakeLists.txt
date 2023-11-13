@@ -12,7 +12,18 @@ set( MAIN_SOURCES main.cpp )
 set ( MAIN_EXE_NAME gbe )
 
 
-add_executable( ${MAIN_EXE_NAME} ${MAIN_SOURCES} ${SOURCES} )
-target_link_libraries( ${MAIN_EXE_NAME} )
+# add_executable( ${MAIN_EXE_NAME} ${MAIN_SOURCES} ${SOURCES} )
+
+
+# SDL test
+
+find_package(SDL2 REQUIRED)
+include_directories(${SDL2_INCLUDE_DIRS})
+
+add_executable(gbe main_gui.cpp ${SOURCES})
+# target_link_libraries( ${MAIN_EXE_NAME} )
+target_link_libraries(gbe ${SDL2_LIBRARIES})
+
+# Install
 
 install( TARGETS ${MAIN_EXE_NAME} RUNTIME DESTINATION bin )
