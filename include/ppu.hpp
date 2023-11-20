@@ -6,6 +6,7 @@
 #include <queue>
 #include <stdio.h>
 #include <SDL2/SDL.h>
+#include "cpu.hpp"
 
 #define SCANLINES 154
 #define DOT 2 ^ (-22) // Seconds
@@ -25,6 +26,7 @@
 #define TILEMAP2_START 0x9C00 // -$9BFF
 
 #define TILESET_START 0x8000
+#define OAM_START 0xFE00
 
 #define COLOR_PALETTE 0xFF47
 
@@ -65,6 +67,8 @@ class PPU
     uint8_t durations[4] = {51, 144, 20, 43};
 
 private:
+    Uint64 last_frame_timestamp;
+
     ppu_mode mode = HORIZONTAL_BLANK;
     // int ly = 0x00; // 0-153 and 00h when off
 
@@ -73,16 +77,25 @@ private:
     uint8_t *p_SCY;  // Scroll Y
     uint8_t *p_LY;
 
+    bool obj_mode; // Draw sprites?
+
     PixelFetcher *pf;
+
+    void draw_sprite(uint16_t address);
+    void draw_foreground_sprites();
+    void draw_background();
 
     uint8_t *p_colPalette;
 
     uint8_t cycles_elapsed = 0;
     MemoryController *p_memory;
+    
 
 public:
+
+    CPU *cpu;
     SDL_Renderer *renderer;
-    PPU(MemoryController *p_m, SDL_Renderer* renderer);
+    PPU(CPU *cpu, MemoryController *p_m, SDL_Renderer* renderer);
 
     void set_memory_controller(MemoryController *p_m);
     void OAM_scan();

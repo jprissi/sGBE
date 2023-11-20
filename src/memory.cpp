@@ -24,13 +24,33 @@ MemoryController::MemoryController()
 {
   bool is_boot = true;
   this->copy_file_to_memory(boot_rom_path, is_boot);
+  this->rom[0xFF00] = 0xFF; // Joypad input defaults to 0xFF at startup
 }
 
 void MemoryController::write(uint16_t address, uint8_t value)
 {
   // TODO: Check if memory is locked
-  this->rom[address] = value;
+  if (address >= 0xE000 and address <= 0xFE00){
+    // Echo of internal RAM
+    address = 0xC000 - 0xE000;
+  }
+  
+  if (address <= 0x8000)
+  {
+    std::cout << std::endl << "Writing to ROM :  " << std::hex << (int)address << std::endl;
+    // exit(1);
+  }
+  else if (address == 0xFF46)
+  {
+    // Initiating DMA transfer (160 machine cycles: 1.4 lines: 640 dots)
+    std::cout << "Requesting DMA transfer" << std::endl;
+    exit(1);
+    // memcpy(value*0x100, 0xFE00, 0xFE9F-0xFE00);
 
+  } else
+  {
+    this->rom[address] = value;
+  }
   if (address == 0xFF50)
   {
     std::cout << std::endl
@@ -39,10 +59,10 @@ void MemoryController::write(uint16_t address, uint8_t value)
   }
 };
 
-void MemoryController::write(uint16_t address, uint16_t value)
-{
-  this->rom[address] = value;
-}
+// void MemoryController::write(uint16_t address, uint16_t value)
+// {
+//   this->rom[address] = value;
+// }
 
 uint8_t MemoryController::read(uint16_t address)
 {

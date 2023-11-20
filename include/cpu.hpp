@@ -8,6 +8,12 @@
 #include <fstream>
 // #include "opcodes.hpp"
 
+#define InterruptFlagAddress 0xFF0F
+#define InterruptEnableAddress 0xFFFF
+
+#define INT_VBLANK 1 << 0
+#define INT_JOYPAD 1 << 5
+
 class CPU
 {
 public:
@@ -18,10 +24,9 @@ public:
 
   uint8_t *p_C = (uint8_t *)&BC;
   uint8_t *p_B = p_C + 1;
-  
+
   uint8_t *p_E = (uint8_t *)&DE;
   uint8_t *p_D = p_E + 1;
-  
 
   uint8_t *p_L = (uint8_t *)&HL;
   uint8_t *p_H = p_L + 1;
@@ -34,7 +39,6 @@ public:
   uint16_t PC = 0x0000; // Before boot
 
   uint8_t next_instruction_relative_pos;
-  
 
   void set_breakpoint(uint16_t address);
 
@@ -42,24 +46,35 @@ private:
   int32_t total_cycles = 0;
   uint16_t breakpoint = 0xffff;
   void assertCPUInitialization();
-public:
 
+  void handle_interrupts();
+  bool interrupts_enabled = false;      // IME flag, disabled at start
+
+public:
   void log(std::ofstream &file);
   bool step_by_step = false;
-  bool interrupts_enabled = true;
-  bool disable_interrupts_next = false; // Or use a counter instead
 
+  
+  bool disable_interrupts_next = false; // Or use a counter instead
+  void enable_interrupts();
+  void disable_interrupts();
+  void request_interrupt(uint8_t interrupt);
+
+  // 7 6 5 4 3 2 1 0
+  // - - - J S T L V
+  // J - Joypad, S - Serial, T - Timer, L - LCD, V - VBlank
+  uint8_t *p_IF; // Interrupt Flag (0xFF0F)
+  uint8_t *p_IE; // Interrupt Enable (0xFFFF)
+
+  void call(uint8_t arg1, uint8_t arg2);
   void push(uint16_t value);
   uint16_t pop();
 
-  uint8_t decode(uint8_t opcode);
+  uint8_t step(uint8_t opcode);
   void extract_grouping(uint8_t opcode, uint8_t &x, uint8_t &y, uint8_t &z);
   void print_registers();
 
   uint8_t *get_register(uint8_t i);
-
-  // void to_16bits(uint8_t in1, uint8_t in2, uint16_t &out);
-  // void to_8bits(uint16_t in, uint8_t &out1, uint8_t &out2);
 
   void panic(); // Custom method to handle our own implementation mistakes
 
@@ -80,7 +95,7 @@ public:
 
   MemoryController m;
 
-  CPU(std::string cartridge_path);
+  CPU(std::string cartridge_path, bool debug_implementation = false);
 };
 
 #endif

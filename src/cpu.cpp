@@ -10,10 +10,14 @@
 #include <bitset>
 #include <assert.h>
 
-CPU::CPU(std::string cartridge_path)
+CPU::CPU(std::string cartridge_path, bool debug_implementation)
 {
+
+  this->p_IE = this->m.get_pointer(InterruptEnableAddress);
+  this->p_IF = this->m.get_pointer(InterruptFlagAddress);
+
   // Skip boot rom
-  if (false)
+  if (debug_implementation)
   {
     this->SP = 0x100;
     *this->p_A = 0x01;
@@ -35,8 +39,6 @@ CPU::CPU(std::string cartridge_path)
   }
 
   this->m.load_cartridge(cartridge_path);
-
-  
 }
 
 uint8_t *CPU::get_register(uint8_t i)
@@ -62,6 +64,17 @@ void CPU::set_breakpoint(uint16_t address)
   breakpoint = address;
 }
 
+void CPU::call(uint8_t arg1, uint8_t arg2)
+{
+
+  uint16_t PC_next = this->PC + this->next_instruction_relative_pos;
+  this->push(PC_next);
+
+  this->PC = (uint16_t)(arg2 << 8 | arg1) - this->next_instruction_relative_pos;
+  std::cout << "setting PC..." << std::endl;
+  // JP(*this, arg1, arg2);
+}
+
 void CPU::push(uint16_t value)
 {
 
@@ -78,29 +91,62 @@ void CPU::push(uint16_t value)
 
 uint16_t CPU::pop()
 {
-  // (this->SP)++;
-  uint8_t arg1 = this->m.read(this->SP + 1);
-  // (this->SP)++;
-  uint8_t arg2 = this->m.read(this->SP + 2);
+  (this->SP)++;
+  uint8_t arg1 = this->m.read(this->SP);
+  (this->SP)++;
+  uint8_t arg2 = this->m.read(this->SP);
 
   uint16_t value = (arg1 << 8) | arg2;
-  this->SP += 2;
+  // this->SP += 2;
 
   // std::cout << "\tpop: " << std::hex << (int)value;
 
   return value;
 }
 
-// void CPU::to_16bits(uint8_t in1, uint8_t in2, uint16_t &out)
-// {
-//   out = (in1 << 8) | in2;
-// }
+void CPU::enable_interrupts()
+{
+  this->interrupts_enabled = true;
+};
 
-// void CPU::to_8bits(uint16_t in, uint8_t &out1, uint8_t &out2)
-// {
-//   out1 = (in & (0b1111 << 4)) >> 4;
-//   out2 = in & 0b1111;
-// }
+void CPU::disable_interrupts()
+{
+  this->interrupts_enabled = false;
+};
+
+void CPU::handle_interrupts()
+{
+  // Interrupt priority : 0 (VBlank) -> 4 (Joypad)
+  bool interrupt_enabled, interrupt_requested;
+  for (int i = 0; i < 5; ++i)
+  {
+    interrupt_enabled = ((this->m.read(InterruptEnableAddress) >> i) & 1);
+    interrupt_requested = ((this->m.read(InterruptFlagAddress) >> i) & 1);
+    if (interrupt_enabled && interrupt_requested)
+    {
+      std::cout << "Interrupt!" << std::endl;
+      this->step_by_step = true;
+      this->interrupts_enabled = false;                              // Disabled IME
+      uint8_t flag = this->m.read(InterruptFlagAddress) & ~(1 << i); // Reset interrupt flag
+      this->m.write(InterruptFlagAddress, flag);
+
+
+      // NOP(*this, 0, 0);
+      // NOP(*this, 0, 0);     // Two M-cycles pass while nothing happens
+      // this->push(this->PC); // 2 M-cycles
+      std::cout << std::hex << (int)((i * 8) + 0x40) << std::endl;
+
+      std::cout <<"mem[0x40] = " << std::hex << (int)this->m.read(0x40) << std::endl;
+      this->step_by_step = true;
+      this->call((uint8_t)((i * 8) + 0x40) + this->next_instruction_relative_pos, (uint8_t)0x00);
+    }
+  }
+}
+
+void CPU::request_interrupt(uint8_t interrupt)
+{
+  (*this->p_IF) |= interrupt;
+}
 
 void CPU::print_registers()
 {
@@ -149,28 +195,26 @@ void CPU::assertCPUInitialization()
   // assert(this->PC == 0x0100);
 }
 
-uint8_t CPU::decode(uint8_t opcode)
+uint8_t CPU::step(uint8_t opcode)
 {
   // http://www.z80.info/decoding.htm
 
-  // std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)opcode;
+  std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)opcode << " ";
 
-  // Everything we need to run instruction
+  // Everything we need to run instructions
   std::string mnemonic("");
   int num_args, cycles = 0;
+  bool prefixed = false;
+  uint8_t prefix;
 
   if (sizeof(opcodes) / sizeof(*opcodes) - 1 < opcode)
   {
-    std::cout << std::endl;
-    std::cout << "Opcode ";
-    std::cout << std::hex << (int)opcode;
-    std::cout << std::dec << " not in opcodes!" << std::endl;
-    exit(1);
+    std::cout << std::endl
+              << "Opcode " << std::hex << (int)opcode << " not in opcodes!" << std::endl;
+    this->panic();
   }
 
   opcodes_s current_op = opcodes[opcode];
-  bool prefixed = false;
-  uint8_t prefix;
 
   if (current_op.mn == "PREFIX")
   {
@@ -178,38 +222,35 @@ uint8_t CPU::decode(uint8_t opcode)
     prefix = opcode; // should be CB
     opcode = this->m.read(this->PC + 1);
     current_op = prefixed_opcodes[opcode];
-    // std::cout << " " << std::hex << (int)opcode;
   }
-
-  // std::cout << " ";
 
   mnemonic = (char *)current_op.mn;
   num_args = current_op.length - 1;
   cycles = current_op.cycles;
   auto func = current_op.func;
 
-  uint8_t args[2] = {NULL, NULL};
+  uint8_t args[2] = {0, 0};
 
   if (num_args > 0)
   {
-    // std::cout << "args: ";
+    std::cout << "args: ";
     for (int i = 1; i < num_args + 1; ++i)
     {
       // Starting from 1 to remove current opcode
       int offset = prefixed; // 0 or 1;
-      // std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)this->m.read(this->PC + i) + offset << " ";
+      std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)this->m.read(this->PC + i) + offset << " ";
       args[i - 1] = (uint8_t)this->m.read(this->PC + i + offset);
     }
   }
   else
   {
-    // std::cout << "\t";
+    std::cout << "\t";
   }
 
   // How many bytes forward
   next_instruction_relative_pos = 1 + num_args;
 
-  // std::cout << "\t" << current_op.label;
+  std::cout << "\t" << current_op.label;
 
   if (this->PC == 0x100 && !this->m.boot_rom_enabled)
   {
@@ -228,12 +269,19 @@ uint8_t CPU::decode(uint8_t opcode)
   // Run instruction
   (*func)(*this, args[0], args[1]);
   this->total_cycles += cycles;
-
   this->PC += next_instruction_relative_pos;
+  
+  // std::cout << this->m.read()
+  
+  std::cout << std::dec << std::endl;
 
-  // std::cout << std::dec << std::endl;
+  
+  /* Check for interrupts */
+  if (this->interrupts_enabled)
+  {
+    this->handle_interrupts();
+  }
 
-  // return num_args;
   return cycles;
 }
 
@@ -242,7 +290,7 @@ void CPU::log(std::ofstream &log_file)
   // A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
 
   log_file << "A:" << std::setw(2) << std::setfill('0') << std::hex << std::uppercase << (int)*this->p_A << " ";
-  log_file << "F:" << std::setw(2) << std::setfill('0') << std::hex << (int)*this->p_F << " ";
+  log_file << "F:" << std::setw(2) << std::setfill('0') << std::hex << (int)*this->flags << " ";
   log_file << "B:" << std::setw(2) << std::setfill('0') << std::hex << (int)*this->p_B << " ";
   log_file << "C:" << std::setw(2) << std::setfill('0') << std::hex << (int)*this->p_C << " ";
   log_file << "D:" << std::setw(2) << std::setfill('0') << std::hex << (int)*this->p_D << " ";

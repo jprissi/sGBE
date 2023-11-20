@@ -81,7 +81,8 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
     case 0x08:
         // LD (nn), SP
         address = arg1 | arg2 << 8;
-        cpu.m.write(address, cpu.SP);
+        cpu.m.write(address, cpu.SP & 0xFF);
+        cpu.m.write(address + 1, (cpu.SP & 0xFF00) >> 8);
         break;
     case 0x12:
         // LD (DE), A
@@ -125,7 +126,7 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
         // p: 2 q: 0
 
         *cpu.p_A = cpu.m.read(cpu.HL);
-        cpu.HL++;
+        cpu.HL += 1;
         // cpu.step_by_step = true;
         break;
 
@@ -139,6 +140,17 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
         // LD A, (nn)
         address = arg2 << 8 | arg1;
         *cpu.p_A = cpu.m.read(address);
+        break;
+    case 0xf8:
+        cpu.HL = cpu.SP + arg1;
+
+        *cpu.flags &= ~CONST_ZERO_FLAG;
+        *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
+        // TODO halfcarry and carry flags;
+        break;
+    case 0xf9:
+        // LD SP, HL or [SP] ?
+        cpu.SP = cpu.HL;
         break;
 
     default:
@@ -158,9 +170,9 @@ void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2)
     if (opcode == 0xe0)
     { // y = 4
         // LDH (n), A
-        p_in = &(*cpu.p_A);
-        address_out = (0xff00 + arg1);
-        cpu.m.write(address_out, *p_in);
+        // p_in = cpu.p_A);
+        address_out = (0xff00 | arg1);
+        cpu.m.write(address_out, *cpu.p_A);
     }
     else if (opcode == 0xf0)
     { // y = 6
@@ -182,11 +194,14 @@ void ADD16(CPU &cpu, uint8_t arg1, uint8_t arg2)
     uint8_t p = (y & 6) >> 1;
 
     *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
+    *cpu.flags &= ~CONST_HALFCARRY_FLAG;
+    *cpu.flags &= ~CONST_CARRY_FLAG;
+
     if ((cpu.HL & 0xFFF) + (*cpu.registers16[p] & 0xFFF) > 0xFFF)
     {
         *cpu.flags |= CONST_HALFCARRY_FLAG;
     }
-    if ((uint32_t)(cpu.HL + *cpu.registers16[p]) > 0xFFFF)
+    if ((uint32_t)cpu.HL + (uint32_t)*cpu.registers16[p] > 0xFFFF)
     {
         *cpu.flags |= CONST_CARRY_FLAG;
     }
@@ -200,19 +215,6 @@ void ADD8(CPU &cpu, uint8_t arg1, uint8_t arg2)
     uint8_t x, y, z;
     cpu.extract_grouping(opcode, x, y, z);
     uint8_t value;
-
-    // if (opcode == 0x86)
-    // {
-    //     value = cpu.m.read(cpu.HL);
-    // }
-    // else if (opcode == 0xc6)
-    // {
-    //     value = arg1;
-    // }
-    // else
-    // {
-    //     value = *cpu.registers[z];
-    // }
 
     if (opcode == 0xC6)
     {
@@ -250,7 +252,26 @@ void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2)
     uint8_t opcode = cpu.m.read(cpu.PC);
     uint8_t x, y, z;
     cpu.extract_grouping(opcode, x, y, z);
+    if (opcode == 0xe8)
+    {
+        
+        *cpu.flags &= ~CONST_HALFCARRY_FLAG;
+        if ((cpu.SP & 0x0F) + ((int8_t)arg1 & 0x0F) > 0x0F)
+        {
+            *cpu.flags |= CONST_HALFCARRY_FLAG;
+        }
 
+        *cpu.flags &= ~CONST_CARRY_FLAG;
+        if ((uint16_t)cpu.SP + (int16_t)arg1 > 0xFF)
+        {
+            *cpu.flags |= CONST_CARRY_FLAG;
+        }
+        cpu.SP += (int8_t)arg1; // Signed immediate value
+
+        *cpu.flags &= ~CONST_ZERO_FLAG;
+        *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
+        return;
+    }
     if (z == 1 && x == 0)
     {
         ADD16(cpu, arg1, arg2);
@@ -327,16 +348,16 @@ void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
     if (opcode == 0x90)
     {
-        if (*cpu.p_B == 0)
+        if (*cpu.p_A < *cpu.p_B)
         {
             *cpu.flags |= CONST_CARRY_FLAG;
         }
-        if ((*cpu.p_B & 0x0F) == 0)
+        if ((int)(*cpu.p_A & 0x0F) - (int)(*cpu.p_B & 0x0F) < 0)
         {
             *cpu.flags |= CONST_HALFCARRY_FLAG;
         }
-        (*cpu.p_B)--;
-        if ((*cpu.p_B) == 0)
+        (*cpu.p_A) -= (*cpu.p_B);
+        if ((*cpu.p_A) == 0)
         {
             *cpu.flags |= CONST_ZERO_FLAG;
         }
@@ -430,31 +451,26 @@ void INC(CPU &cpu, uint8_t arg1, uint8_t arg2)
     {
         *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
         // 8 bit inc
+
+        *cpu.flags &= ~CONST_HALFCARRY_FLAG;
         if ((*cpu.registers[y] & 0x0f) + 1 > 0x0f)
         {
             *cpu.flags |= CONST_HALFCARRY_FLAG;
         }
-        else
-        {
-            *cpu.flags &= ~CONST_HALFCARRY_FLAG;
-        }
 
         (*cpu.registers[y])++;
 
+        *cpu.flags &= ~CONST_ZERO_FLAG;
         if (*cpu.registers[y] == 0)
         {
             *cpu.flags |= CONST_ZERO_FLAG;
-        }
-        else
-        {
-            *cpu.flags &= ~CONST_ZERO_FLAG;
         }
 
         return;
     }
     else if (z == 3)
     {
-        // Not effect on flags according to manual
+        // No effect on flags according to manual
 
         (*cpu.registers16[p])++;
 
@@ -473,7 +489,8 @@ void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2)
     // uint8_t q = y & (1 << 0);
     uint8_t p = (y & 6) >> 1;
 
-    bool zero = 0;
+    bool zero = false;
+
     if (z == 5)
     {
         // 8-bit dec
@@ -495,21 +512,20 @@ void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2)
     }
     else if (z == 3)
     {
+        // DEC nn (no flag affected)
         // If DEC then q is automatically 1
-        if ((*cpu.registers16[p] & 0x0f) == 0x00)
-        {
-            *cpu.flags |= CONST_HALFCARRY_FLAG;
-        }
-        else
-        {
-            *cpu.flags &= ~CONST_HALFCARRY_FLAG;
-        }
+        // if ((*cpu.registers16[p] & 0x0f) == 0x00)
+        // {
+        //     *cpu.flags |= CONST_HALFCARRY_FLAG;
+        // }
+        // else
+        // {
+        //     *cpu.flags &= ~CONST_HALFCARRY_FLAG;
+        // }
 
         (*cpu.registers16[p])--;
-        if (*cpu.registers16[p] == 0)
-        {
-            zero = 1;
-        };
+
+        return; // (no flags affected)
     }
     else
     {
@@ -517,13 +533,10 @@ void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2)
         exit(1);
     }
 
+    *cpu.flags &= ~CONST_ZERO_FLAG;
     if (zero)
     {
         *cpu.flags |= CONST_ZERO_FLAG; // Z - set if result is zero
-    }
-    else
-    {
-        *cpu.flags &= ~CONST_ZERO_FLAG;
     }
     // C - not affected
     // N - set
@@ -590,7 +603,7 @@ void JR(CPU &cpu, uint8_t arg1, uint8_t arg2)
     uint8_t opcode = cpu.m.read(cpu.PC);
     uint8_t x, y, z;
     cpu.extract_grouping(opcode, x, y, z);
-    int8_t offset = arg1;
+    int offset = (int8_t)arg1;
     // std::cout << std::dec << i-2 << std::endl;
     if (y == 3)
     {
@@ -762,7 +775,7 @@ void CP(CPU &cpu, uint8_t arg1, uint8_t arg2)
         value = *cpu.registers[z];
     }
 
-    // std::cout << "\t => " << (int)value << " <=? " << (int)(*cpu.p_A);
+    std::cout << "\t => " << (int)value << " <=? " << std::hex << (int)(*cpu.p_A);
 
     if (*cpu.p_A == value)
     {
@@ -803,7 +816,7 @@ void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     // uint16_t addr = arg1 << 8 | arg2;
     uint8_t opcode = cpu.m.read(cpu.PC);
-    uint16_t value = cpu.PC + cpu.next_instruction_relative_pos;
+
     bool cc = false;
 
     if (opcode != 0xcd)
@@ -834,8 +847,7 @@ void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2)
     if (opcode == 0xcd || cc)
     {
         // Call nn
-        cpu.push(value);
-        JP(cpu, arg1, arg2);
+        cpu.call(arg1, arg2);
     }
 }
 
@@ -886,13 +898,30 @@ void RET(CPU &cpu, uint8_t arg1, uint8_t arg2)
             break;
         };
     }
-    if (z == 1 || ret)
+    if (z == 1 || (z == 0 && ret))
     {
         // RET
         uint16_t address = cpu.pop();
         // Address stored in the stack is already the correct one, main loop will increment PC by 1 byte, so minus one
         cpu.PC = address - 1;
     }
+    else if (z == 0 && !(ret))
+    {
+        return;
+    }
+    else
+    {
+        std::cout << "UNK" << std::endl;
+        cpu.panic();
+    }
+}
+
+void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    uint16_t address = cpu.pop();
+    // Address stored in the stack is already the correct one, main loop will increment PC by 1 byte, so minus one
+    cpu.PC = address - 1;
+    cpu.enable_interrupts();
 }
 
 void RST(CPU &cpu, uint8_t arg1, uint8_t arg2)
@@ -1023,6 +1052,21 @@ void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
     *cpu.flags &= ~CONST_HALFCARRY_FLAG;
 }
 
+void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    uint8_t value = *cpu.p_A;
+    *cpu.flags |= (value >> 7) << 4;
+    *cpu.p_A = value << 1 | value >> 7;
+
+    *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
+    *cpu.flags &= ~CONST_HALFCARRY_FLAG;
+    *cpu.flags &= ~CONST_ZERO_FLAG;
+    if (*cpu.p_A == 0)
+    {
+        *cpu.flags |= CONST_ZERO_FLAG;
+    }
+}
+
 void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     // if(cpu.PC = 0xc464) {cpu.step_by_step = true;}
@@ -1103,7 +1147,8 @@ void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2)
     *cpu.flags &= ~CONST_CARRY_FLAG;
 }
 
-void SET(CPU &cpu, uint8_t arg1, uint8_t arg2){
+void SET(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
     uint8_t x, y, z;
     cpu.extract_grouping(opcode, x, y, z);

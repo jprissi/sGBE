@@ -13,69 +13,73 @@ struct opcodes_s { // The opcode value is implicit in the array index
   char* label;
 };
 
-  void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+
+  void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
-  void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+  void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
   uint8_t decode(unsigned char opcode);
 
@@ -90,7 +94,7 @@ struct opcodes_s { // The opcode value is implicit in the array index
 	  {0x04, "INC", 1, 4, &INC, "INC B"},
 	  {0x05, "DEC", 1, 4, &DEC, "DEC B"},
 	  {0x06, "LD", 2, 8, &LD, "LD B, d8"},
-	  {0x07, "RLCA", 1, 4, &UNK, "RLCA "},
+	  {0x07, "RLCA", 1, 4, &RLCA, "RLCA "},
 	  {0x08, "LD", 3, 20, &LD, "LD (a16), SP"},
 	  {0x09, "ADD", 1, 8, &ADD, "ADD HL, BC"},
 	  {0x0a, "LD", 1, 8, &LD, "LD A, (BC)"},
@@ -300,7 +304,7 @@ struct opcodes_s { // The opcode value is implicit in the array index
 	  {0xd6, "SUB", 2, 8, &SUB, "SUB d8"},
 	  {0xd7, "RST", 1, 16, &RST, "RST 10H"},
 	  {0xd8, "RET", 1, 20, &RET, "RET C"},
-	  {0xd9, "RETI", 1, 16, &UNK, "RETI "},
+	  {0xd9, "RETI", 1, 16, &RETI, "RETI "},
 	  {0xda, "JP", 3, 16, &JP, "JP C, a16"},
 	  {0xdb, "UNK", 0, 0, &UNK, "UNK"},
 	  {0xdc, "CALL", 3, 24, &CALL, "CALL C, a16"},

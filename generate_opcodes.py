@@ -46,12 +46,14 @@ implemented = [
     "ADD", "ADC", 
     "CPL",
     "CALL", "RET", "PUSH", "POP",
+    "RETI",
     "XOR", "AND", "OR",
     "DI", "EI",
     "CP",
     "RST",
+    "RLA", "RRA", "RLCA",
     # CB-prefixed
-    "RES", "BIT", "RL", "RR", "RLA", "RRA", "SWAP", "SRL",
+    "RES", "BIT", "RL", "RR", "SWAP", "SRL",
     "SET"
 ]
 

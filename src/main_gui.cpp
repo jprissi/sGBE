@@ -19,11 +19,13 @@
 #include "ppu.hpp"
 #include "opcodes.hpp"
 
-#define ROM_OFFSET 0x00 // Cartridge start at address 0
+#define ROM_OFFSET 0x00 // Cartridge start at setress 0
 
 #define SCALE 3
 #define SCREEN_WIDTH 160
 #define SCREEN_HEIGHT 144
+
+#define CLOCK_SPEED 4194304 // 4.194304MHz
 
 typedef struct
 {
@@ -42,10 +44,10 @@ void render_tilemap(CPU &cpu, SDL_Renderer *renderer)
     uint16_t i = 0;
     uint16_t start = 0x8000; // 0x80d0;
     uint16_t end = start + 48 * 16;
-    for (uint16_t address = start; address <= end; address += 16) // Iterate over each block
+    for (uint16_t setress = start; setress <= end; setress += 16) // Iterate over each block
     {
-        i = address - start;
-        std::cout << address << std::endl;
+        i = setress - start;
+        std::cout << setress << std::endl;
         uint16_t block_idx = i / 16;
         std::cout << block_idx << std::endl;
         uint16_t block_x = block_idx % 16;
@@ -55,8 +57,8 @@ void render_tilemap(CPU &cpu, SDL_Renderer *renderer)
         for (int row = 0; row < 8; row++)
         {
             // Each line has 2 bytes
-            uint16_t value_lsb = cpu.m.read(address + 2 * row);
-            uint16_t value_msb = cpu.m.read(address + 2 * row + 1);
+            uint16_t value_lsb = cpu.m.read(setress + 2 * row);
+            uint16_t value_msb = cpu.m.read(setress + 2 * row + 1);
 
             for (int col = 0; col < 8; col++)
             {
@@ -128,38 +130,41 @@ int main()
     SDL_Renderer *renderer = initGraphics(window);
 
     std::string cartridge_path;
-    bool debug_implementation = false;
+    bool debug_implementation = true;
+    // bool debug_implementation = false;
     bool log_to_file;
 
     cartridge_path = "../rom/tetris.gb";
 
     if (debug_implementation)
     {
-        cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/01-special.gb";
-        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/03-op sp,hl.gb";
+        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/01-special.gb";
+        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"; // Need timer interrupt
+        cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/03-op sp,hl.gb";
         // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/04-op r,imm.gb"; // OK!
-        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/05-op rp.gb";
-        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/06-ld r,r.gb";
+        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/05-op rp.gb"; // OK!
+        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/06-ld r,r.gb"; // OK!
+        // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/07-jr,jp,call,ret,rst.gb";
         log_to_file = true;
     }
-    CPU *cpu = new CPU(cartridge_path);
 
-    // cpu->add_breakpoint(0x2817); // Starts loading tiles
-    // cpu->add_breakpoint(0x0100); // End of boot rom
-    // cpu->add_breakpoint(0x0027); // Start decompressing nintendo logo
-    // cpu->add_breakpoint(0x0034); // Finished decompressing
-    // cpu->add_breakpoint(0x089); // Setup display
-    // cpu->add_breakpoint(0x0e9); // Check Nintendo logo
+    CPU *cpu = new CPU(cartridge_path, debug_implementation);
 
-    // cpu->set_breakpoint(0xc2c4); // Bug?
+    // cpu->set_breakpoint(0x2817); // Starts loading tiles
+    // cpu->set_breakpoint(0x0100); // End of boot rom
+    // cpu->set_breakpoint(0x0027); // Start decompressing nintendo logo
+    // cpu->set_breakpoint(0x0034); // Finished decompressing
+    // cpu->set_breakpoint(0x089); // Setup display
+    // cpu->set_breakpoint(0x0e9); // Check Nintendo logo
 
-    
+    cpu->set_breakpoint(0x204); // Bug?
+
     if (debug_implementation)
     {
         cpu->m.write((uint16_t)0xFF44, (uint8_t)0x90);
     }
 
-    PPU *ppu = new PPU(&cpu->m, renderer);
+    PPU *ppu = new PPU(cpu, &cpu->m, renderer);
     ppu->set_memory_controller(&(cpu->m));
 
     int MAX_INSTRUCTIONS = 10000000;
@@ -170,16 +175,32 @@ int main()
     std::ofstream log_file;
     log_file.open("./cpu_log.txt");
 
+    Uint64 start = SDL_GetPerformanceCounter();
+    uint16_t cycles = 0;
+    int timeout = 10;
+
     while (!quit)
     {
-
         while (SDL_PollEvent(&event))
         {
-
-            if (event.type == SDL_QUIT)
+            switch (event.type)
             {
+            case SDL_KEYDOWN:
+                switch (event.key.keysym.sym)
+                {
+                case SDLK_SPACE:
+                    cpu->step_by_step = !cpu->step_by_step;
+                    break;
+                case SDLK_c:
+                    cpu->step_by_step = false;
+                default:
+                    break;
+                };
+                break;
+            case SDL_QUIT:
                 quit = true;
-            }
+                break;
+            };
             // else if (event.type == SDL_KEYDOWN and cpu->step_by_step)
             // {
             // }
@@ -190,7 +211,7 @@ int main()
 
             cpu->print_registers();
             // quit=true;
-            
+
             std::cin.ignore();
             cpu->step_by_step = false;
         }
@@ -200,14 +221,55 @@ int main()
             cpu->log(log_file);
         }
 
-        int instruction = int(cpu->m.read(cpu->PC));
+        // while (cycles <= 16.666f / 1000 * 2 * CLOCK_SPEED) { // 4Mhz * 16ms
+        std::cout << "[" << std::hex << std::setw(4) << cpu->PC << "]\t"; // Print PC (1st number on line)
 
-        // std::cout << std::hex << cpu->PC << "\t";
-        uint8_t cycles = cpu->decode((uint8_t)instruction);
-        
+        // std::cout << "reading instruction" << std::endl;
+        int instruction = int(cpu->m.read(cpu->PC));
+        // std::cout << "executing instruction : " << std::hex << (int)instruction << std::endl;
+        cycles += cpu->step((uint8_t)instruction);
+
+        if (instruction == int(cpu->m.read(cpu->PC)))
+        {
+            timeout--;
+            if (timeout == 0)
+            {
+                std::cout << "reached loop, ending" << std::endl;
+                quit = true;
+            }
+        }
+        else
+        {
+            timeout = 10;
+        }
+
+        // }
+
         if (!debug_implementation)
         {
+            // Uint64 end = SDL_GetPerformanceCounter();
+            // float elapsed = (end - start) / (float)SDL_GetPerformanceFrequency();
+
+            // float elapsedMS = elapsed * 1000.0f;
+
+            // if (elapsedMS > 16.666f)
+            // {
+            // Cap to 60 FPS
+            // if (2 * 16.666f - elapsedMS > 0)
+            // {
+            //     SDL_Delay(floor(2 * 16.666f - elapsedMS));
+            // }
+
+            // start = SDL_GetPerformanceCounter();
+
             ppu->update(cycles);
+
+            // std::cout << "Current FPS: " << std::to_string(1.0f / (2 * 16.666f / 1000)) << std::endl;
+            // std::cout << "Cycles: " << std::to_string(cycles) << std::endl; // 4.19MHz
+
+            // cycles -= 16 * 2 * 4;
+            cycles = 0;
+            // }
         }
 
         if (i >= MAX_INSTRUCTIONS)
