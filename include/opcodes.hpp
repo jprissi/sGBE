@@ -1,8 +1,48 @@
+
 #ifndef OPCODES_H
 #define OPCODES_H
 
 #include <stdint.h>
+#include <string>
 #include "cpu.hpp"
+
+uint8_t decode(unsigned char opcode);
+
+void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
 struct opcodes_s { // The opcode value is implicit in the array index
   uint8_t opcode;
@@ -10,339 +50,269 @@ struct opcodes_s { // The opcode value is implicit in the array index
   uint8_t length;
   uint8_t cycles;
   void (*func)(CPU &cpu, uint8_t arg1, uint8_t arg2); // Implement minimal set of mnemonics
-  char* label;
+  //char* label;
+  std::string label;
 };
 
-  void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
-  uint8_t decode(unsigned char opcode);
-
-  void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2);
-
 // Array, hex opcode is array address
-  const opcodes_s opcodes[] = {
-	  {0x00, "NOP", 1, 4, &NOP, "NOP "},
-	  {0x01, "LD", 3, 12, &LD, "LD BC, d16"},
-	  {0x02, "LD", 1, 8, &LD, "LD (BC), A"},
-	  {0x03, "INC", 1, 8, &INC, "INC BC"},
-	  {0x04, "INC", 1, 4, &INC, "INC B"},
-	  {0x05, "DEC", 1, 4, &DEC, "DEC B"},
-	  {0x06, "LD", 2, 8, &LD, "LD B, d8"},
-	  {0x07, "RLCA", 1, 4, &RLCA, "RLCA "},
-	  {0x08, "LD", 3, 20, &LD, "LD (a16), SP"},
-	  {0x09, "ADD", 1, 8, &ADD, "ADD HL, BC"},
-	  {0x0a, "LD", 1, 8, &LD, "LD A, (BC)"},
-	  {0x0b, "DEC", 1, 8, &DEC, "DEC BC"},
-	  {0x0c, "INC", 1, 4, &INC, "INC C"},
-	  {0x0d, "DEC", 1, 4, &DEC, "DEC C"},
-	  {0x0e, "LD", 2, 8, &LD, "LD C, d8"},
-	  {0x0f, "RRCA", 1, 4, &UNK, "RRCA "},
-	  {0x10, "STOP", 1, 4, &UNK, "STOP 0"},
-	  {0x11, "LD", 3, 12, &LD, "LD DE, d16"},
-	  {0x12, "LD", 1, 8, &LD, "LD (DE), A"},
-	  {0x13, "INC", 1, 8, &INC, "INC DE"},
-	  {0x14, "INC", 1, 4, &INC, "INC D"},
-	  {0x15, "DEC", 1, 4, &DEC, "DEC D"},
-	  {0x16, "LD", 2, 8, &LD, "LD D, d8"},
-	  {0x17, "RLA", 1, 4, &RLA, "RLA "},
-	  {0x18, "JR", 2, 12, &JR, "JR r8"},
-	  {0x19, "ADD", 1, 8, &ADD, "ADD HL, DE"},
-	  {0x1a, "LD", 1, 8, &LD, "LD A, (DE)"},
-	  {0x1b, "DEC", 1, 8, &DEC, "DEC DE"},
-	  {0x1c, "INC", 1, 4, &INC, "INC E"},
-	  {0x1d, "DEC", 1, 4, &DEC, "DEC E"},
-	  {0x1e, "LD", 2, 8, &LD, "LD E, d8"},
-	  {0x1f, "RRA", 1, 4, &RRA, "RRA "},
-	  {0x20, "JR", 2, 12, &JR, "JR NZ, r8"},
-	  {0x21, "LD", 3, 12, &LD, "LD HL, d16"},
-	  {0x22, "LD", 1, 8, &LD, "LD (HL+), A"},
-	  {0x23, "INC", 1, 8, &INC, "INC HL"},
-	  {0x24, "INC", 1, 4, &INC, "INC H"},
-	  {0x25, "DEC", 1, 4, &DEC, "DEC H"},
-	  {0x26, "LD", 2, 8, &LD, "LD H, d8"},
-	  {0x27, "DAA", 1, 4, &UNK, "DAA "},
-	  {0x28, "JR", 2, 12, &JR, "JR Z, r8"},
-	  {0x29, "ADD", 1, 8, &ADD, "ADD HL, HL"},
-	  {0x2a, "LD", 1, 8, &LD, "LD A, (HL+)"},
-	  {0x2b, "DEC", 1, 8, &DEC, "DEC HL"},
-	  {0x2c, "INC", 1, 4, &INC, "INC L"},
-	  {0x2d, "DEC", 1, 4, &DEC, "DEC L"},
-	  {0x2e, "LD", 2, 8, &LD, "LD L, d8"},
-	  {0x2f, "CPL", 1, 4, &CPL, "CPL "},
-	  {0x30, "JR", 2, 12, &JR, "JR NC, r8"},
-	  {0x31, "LD", 3, 12, &LD, "LD SP, d16"},
-	  {0x32, "LD", 1, 8, &LD, "LD (HL-), A"},
-	  {0x33, "INC", 1, 8, &INC, "INC SP"},
-	  {0x34, "INC", 1, 12, &INC, "INC (HL)"},
-	  {0x35, "DEC", 1, 12, &DEC, "DEC (HL)"},
-	  {0x36, "LD", 2, 12, &LD, "LD (HL), d8"},
-	  {0x37, "SCF", 1, 4, &UNK, "SCF "},
-	  {0x38, "JR", 2, 12, &JR, "JR C, r8"},
-	  {0x39, "ADD", 1, 8, &ADD, "ADD HL, SP"},
-	  {0x3a, "LD", 1, 8, &LD, "LD A, (HL-)"},
-	  {0x3b, "DEC", 1, 8, &DEC, "DEC SP"},
-	  {0x3c, "INC", 1, 4, &INC, "INC A"},
-	  {0x3d, "DEC", 1, 4, &DEC, "DEC A"},
-	  {0x3e, "LD", 2, 8, &LD, "LD A, d8"},
-	  {0x3f, "CCF", 1, 4, &UNK, "CCF "},
-	  {0x40, "LD", 1, 4, &LD, "LD B, B"},
-	  {0x41, "LD", 1, 4, &LD, "LD B, C"},
-	  {0x42, "LD", 1, 4, &LD, "LD B, D"},
-	  {0x43, "LD", 1, 4, &LD, "LD B, E"},
-	  {0x44, "LD", 1, 4, &LD, "LD B, H"},
-	  {0x45, "LD", 1, 4, &LD, "LD B, L"},
-	  {0x46, "LD", 1, 8, &LD, "LD B, (HL)"},
-	  {0x47, "LD", 1, 4, &LD, "LD B, A"},
-	  {0x48, "LD", 1, 4, &LD, "LD C, B"},
-	  {0x49, "LD", 1, 4, &LD, "LD C, C"},
-	  {0x4a, "LD", 1, 4, &LD, "LD C, D"},
-	  {0x4b, "LD", 1, 4, &LD, "LD C, E"},
-	  {0x4c, "LD", 1, 4, &LD, "LD C, H"},
-	  {0x4d, "LD", 1, 4, &LD, "LD C, L"},
-	  {0x4e, "LD", 1, 8, &LD, "LD C, (HL)"},
-	  {0x4f, "LD", 1, 4, &LD, "LD C, A"},
-	  {0x50, "LD", 1, 4, &LD, "LD D, B"},
-	  {0x51, "LD", 1, 4, &LD, "LD D, C"},
-	  {0x52, "LD", 1, 4, &LD, "LD D, D"},
-	  {0x53, "LD", 1, 4, &LD, "LD D, E"},
-	  {0x54, "LD", 1, 4, &LD, "LD D, H"},
-	  {0x55, "LD", 1, 4, &LD, "LD D, L"},
-	  {0x56, "LD", 1, 8, &LD, "LD D, (HL)"},
-	  {0x57, "LD", 1, 4, &LD, "LD D, A"},
-	  {0x58, "LD", 1, 4, &LD, "LD E, B"},
-	  {0x59, "LD", 1, 4, &LD, "LD E, C"},
-	  {0x5a, "LD", 1, 4, &LD, "LD E, D"},
-	  {0x5b, "LD", 1, 4, &LD, "LD E, E"},
-	  {0x5c, "LD", 1, 4, &LD, "LD E, H"},
-	  {0x5d, "LD", 1, 4, &LD, "LD E, L"},
-	  {0x5e, "LD", 1, 8, &LD, "LD E, (HL)"},
-	  {0x5f, "LD", 1, 4, &LD, "LD E, A"},
-	  {0x60, "LD", 1, 4, &LD, "LD H, B"},
-	  {0x61, "LD", 1, 4, &LD, "LD H, C"},
-	  {0x62, "LD", 1, 4, &LD, "LD H, D"},
-	  {0x63, "LD", 1, 4, &LD, "LD H, E"},
-	  {0x64, "LD", 1, 4, &LD, "LD H, H"},
-	  {0x65, "LD", 1, 4, &LD, "LD H, L"},
-	  {0x66, "LD", 1, 8, &LD, "LD H, (HL)"},
-	  {0x67, "LD", 1, 4, &LD, "LD H, A"},
-	  {0x68, "LD", 1, 4, &LD, "LD L, B"},
-	  {0x69, "LD", 1, 4, &LD, "LD L, C"},
-	  {0x6a, "LD", 1, 4, &LD, "LD L, D"},
-	  {0x6b, "LD", 1, 4, &LD, "LD L, E"},
-	  {0x6c, "LD", 1, 4, &LD, "LD L, H"},
-	  {0x6d, "LD", 1, 4, &LD, "LD L, L"},
-	  {0x6e, "LD", 1, 8, &LD, "LD L, (HL)"},
-	  {0x6f, "LD", 1, 4, &LD, "LD L, A"},
-	  {0x70, "LD", 1, 8, &LD, "LD (HL), B"},
-	  {0x71, "LD", 1, 8, &LD, "LD (HL), C"},
-	  {0x72, "LD", 1, 8, &LD, "LD (HL), D"},
-	  {0x73, "LD", 1, 8, &LD, "LD (HL), E"},
-	  {0x74, "LD", 1, 8, &LD, "LD (HL), H"},
-	  {0x75, "LD", 1, 8, &LD, "LD (HL), L"},
-	  {0x76, "HALT", 1, 4, &UNK, "HALT "},
-	  {0x77, "LD", 1, 8, &LD, "LD (HL), A"},
-	  {0x78, "LD", 1, 4, &LD, "LD A, B"},
-	  {0x79, "LD", 1, 4, &LD, "LD A, C"},
-	  {0x7a, "LD", 1, 4, &LD, "LD A, D"},
-	  {0x7b, "LD", 1, 4, &LD, "LD A, E"},
-	  {0x7c, "LD", 1, 4, &LD, "LD A, H"},
-	  {0x7d, "LD", 1, 4, &LD, "LD A, L"},
-	  {0x7e, "LD", 1, 8, &LD, "LD A, (HL)"},
-	  {0x7f, "LD", 1, 4, &LD, "LD A, A"},
-	  {0x80, "ADD", 1, 4, &ADD, "ADD A, B"},
-	  {0x81, "ADD", 1, 4, &ADD, "ADD A, C"},
-	  {0x82, "ADD", 1, 4, &ADD, "ADD A, D"},
-	  {0x83, "ADD", 1, 4, &ADD, "ADD A, E"},
-	  {0x84, "ADD", 1, 4, &ADD, "ADD A, H"},
-	  {0x85, "ADD", 1, 4, &ADD, "ADD A, L"},
-	  {0x86, "ADD", 1, 8, &ADD, "ADD A, (HL)"},
-	  {0x87, "ADD", 1, 4, &ADD, "ADD A, A"},
-	  {0x88, "ADC", 1, 4, &ADC, "ADC A, B"},
-	  {0x89, "ADC", 1, 4, &ADC, "ADC A, C"},
-	  {0x8a, "ADC", 1, 4, &ADC, "ADC A, D"},
-	  {0x8b, "ADC", 1, 4, &ADC, "ADC A, E"},
-	  {0x8c, "ADC", 1, 4, &ADC, "ADC A, H"},
-	  {0x8d, "ADC", 1, 4, &ADC, "ADC A, L"},
-	  {0x8e, "ADC", 1, 8, &ADC, "ADC A, (HL)"},
-	  {0x8f, "ADC", 1, 4, &ADC, "ADC A, A"},
-	  {0x90, "SUB", 1, 4, &SUB, "SUB B"},
-	  {0x91, "SUB", 1, 4, &SUB, "SUB C"},
-	  {0x92, "SUB", 1, 4, &SUB, "SUB D"},
-	  {0x93, "SUB", 1, 4, &SUB, "SUB E"},
-	  {0x94, "SUB", 1, 4, &SUB, "SUB H"},
-	  {0x95, "SUB", 1, 4, &SUB, "SUB L"},
-	  {0x96, "SUB", 1, 8, &SUB, "SUB (HL)"},
-	  {0x97, "SUB", 1, 4, &SUB, "SUB A"},
-	  {0x98, "SBC", 1, 4, &SBC, "SBC A, B"},
-	  {0x99, "SBC", 1, 4, &SBC, "SBC A, C"},
-	  {0x9a, "SBC", 1, 4, &SBC, "SBC A, D"},
-	  {0x9b, "SBC", 1, 4, &SBC, "SBC A, E"},
-	  {0x9c, "SBC", 1, 4, &SBC, "SBC A, H"},
-	  {0x9d, "SBC", 1, 4, &SBC, "SBC A, L"},
-	  {0x9e, "SBC", 1, 8, &SBC, "SBC A, (HL)"},
-	  {0x9f, "SBC", 1, 4, &SBC, "SBC A, A"},
-	  {0xa0, "AND", 1, 4, &AND, "AND B"},
-	  {0xa1, "AND", 1, 4, &AND, "AND C"},
-	  {0xa2, "AND", 1, 4, &AND, "AND D"},
-	  {0xa3, "AND", 1, 4, &AND, "AND E"},
-	  {0xa4, "AND", 1, 4, &AND, "AND H"},
-	  {0xa5, "AND", 1, 4, &AND, "AND L"},
-	  {0xa6, "AND", 1, 8, &AND, "AND (HL)"},
-	  {0xa7, "AND", 1, 4, &AND, "AND A"},
-	  {0xa8, "XOR", 1, 4, &XOR, "XOR B"},
-	  {0xa9, "XOR", 1, 4, &XOR, "XOR C"},
-	  {0xaa, "XOR", 1, 4, &XOR, "XOR D"},
-	  {0xab, "XOR", 1, 4, &XOR, "XOR E"},
-	  {0xac, "XOR", 1, 4, &XOR, "XOR H"},
-	  {0xad, "XOR", 1, 4, &XOR, "XOR L"},
-	  {0xae, "XOR", 1, 8, &XOR, "XOR (HL)"},
-	  {0xaf, "XOR", 1, 4, &XOR, "XOR A"},
-	  {0xb0, "OR", 1, 4, &OR, "OR B"},
-	  {0xb1, "OR", 1, 4, &OR, "OR C"},
-	  {0xb2, "OR", 1, 4, &OR, "OR D"},
-	  {0xb3, "OR", 1, 4, &OR, "OR E"},
-	  {0xb4, "OR", 1, 4, &OR, "OR H"},
-	  {0xb5, "OR", 1, 4, &OR, "OR L"},
-	  {0xb6, "OR", 1, 8, &OR, "OR (HL)"},
-	  {0xb7, "OR", 1, 4, &OR, "OR A"},
-	  {0xb8, "CP", 1, 4, &CP, "CP B"},
-	  {0xb9, "CP", 1, 4, &CP, "CP C"},
-	  {0xba, "CP", 1, 4, &CP, "CP D"},
-	  {0xbb, "CP", 1, 4, &CP, "CP E"},
-	  {0xbc, "CP", 1, 4, &CP, "CP H"},
-	  {0xbd, "CP", 1, 4, &CP, "CP L"},
-	  {0xbe, "CP", 1, 8, &CP, "CP (HL)"},
-	  {0xbf, "CP", 1, 4, &CP, "CP A"},
-	  {0xc0, "RET", 1, 20, &RET, "RET NZ"},
-	  {0xc1, "POP", 1, 12, &POP, "POP BC"},
-	  {0xc2, "JP", 3, 16, &JP, "JP NZ, a16"},
-	  {0xc3, "JP", 3, 16, &JP, "JP a16"},
-	  {0xc4, "CALL", 3, 24, &CALL, "CALL NZ, a16"},
-	  {0xc5, "PUSH", 1, 16, &PUSH, "PUSH BC"},
-	  {0xc6, "ADD", 2, 8, &ADD, "ADD A, d8"},
-	  {0xc7, "RST", 1, 16, &RST, "RST 00H"},
-	  {0xc8, "RET", 1, 20, &RET, "RET Z"},
-	  {0xc9, "RET", 1, 16, &RET, "RET "},
-	  {0xca, "JP", 3, 16, &JP, "JP Z, a16"},
-	  {0xcb, "PREFIX", 1, 4, &UNK, "PREFIX CB"},
-	  {0xcc, "CALL", 3, 24, &CALL, "CALL Z, a16"},
-	  {0xcd, "CALL", 3, 24, &CALL, "CALL a16"},
-	  {0xce, "ADC", 2, 8, &ADC, "ADC A, d8"},
-	  {0xcf, "RST", 1, 16, &RST, "RST 08H"},
-	  {0xd0, "RET", 1, 20, &RET, "RET NC"},
-	  {0xd1, "POP", 1, 12, &POP, "POP DE"},
-	  {0xd2, "JP", 3, 16, &JP, "JP NC, a16"},
-	  {0xd3, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xd4, "CALL", 3, 24, &CALL, "CALL NC, a16"},
-	  {0xd5, "PUSH", 1, 16, &PUSH, "PUSH DE"},
-	  {0xd6, "SUB", 2, 8, &SUB, "SUB d8"},
-	  {0xd7, "RST", 1, 16, &RST, "RST 10H"},
-	  {0xd8, "RET", 1, 20, &RET, "RET C"},
-	  {0xd9, "RETI", 1, 16, &RETI, "RETI "},
-	  {0xda, "JP", 3, 16, &JP, "JP C, a16"},
-	  {0xdb, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xdc, "CALL", 3, 24, &CALL, "CALL C, a16"},
-	  {0xdd, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xde, "SBC", 2, 8, &SBC, "SBC A, d8"},
-	  {0xdf, "RST", 1, 16, &RST, "RST 18H"},
-	  {0xe0, "LDH", 2, 12, &LDH, "LDH (a8), A"},
-	  {0xe1, "POP", 1, 12, &POP, "POP HL"},
-	  {0xe2, "LD", 1, 8, &LD, "LD (C), A"},
-	  {0xe3, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xe4, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xe5, "PUSH", 1, 16, &PUSH, "PUSH HL"},
-	  {0xe6, "AND", 2, 8, &AND, "AND d8"},
-	  {0xe7, "RST", 1, 16, &RST, "RST 20H"},
-	  {0xe8, "ADD", 2, 16, &ADD, "ADD SP, r8"},
-	  {0xe9, "JP", 1, 4, &JP, "JP (HL)"},
-	  {0xea, "LD", 3, 16, &LD, "LD (a16), A"},
-	  {0xeb, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xec, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xed, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xee, "XOR", 2, 8, &XOR, "XOR d8"},
-	  {0xef, "RST", 1, 16, &RST, "RST 28H"},
-	  {0xf0, "LDH", 2, 12, &LDH, "LDH A, (a8)"},
-	  {0xf1, "POP", 1, 12, &POP, "POP AF"},
-	  {0xf2, "LD", 1, 8, &LD, "LD A, (C)"},
-	  {0xf3, "DI", 1, 4, &DI, "DI "},
-	  {0xf4, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xf5, "PUSH", 1, 16, &PUSH, "PUSH AF"},
-	  {0xf6, "OR", 2, 8, &OR, "OR d8"},
-	  {0xf7, "RST", 1, 16, &RST, "RST 30H"},
-	  {0xf8, "LD", 2, 12, &LD, "LD HL, SP+r8"},
-	  {0xf9, "LD", 1, 8, &LD, "LD SP, HL"},
-	  {0xfa, "LD", 3, 16, &LD, "LD A, (a16)"},
-	  {0xfb, "EI", 1, 4, &EI, "EI "},
-	  {0xfc, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xfd, "UNK", 0, 0, &UNK, "UNK"},
-	  {0xfe, "CP", 2, 8, &CP, "CP d8"},
-	  {0xff, "RST", 1, 16, &RST, "RST 38H"},
+const opcodes_s opcodes[] = {
+	{0x00, "NOP", 1, 4, &NOP, "NOP "},
+	{0x01, "LD", 3, 12, &LD, "LD BC, d16"},
+	{0x02, "LD", 1, 8, &LD, "LD (BC), A"},
+	{0x03, "INC", 1, 8, &INC, "INC BC"},
+	{0x04, "INC", 1, 4, &INC, "INC B"},
+	{0x05, "DEC", 1, 4, &DEC, "DEC B"},
+	{0x06, "LD", 2, 8, &LD, "LD B, d8"},
+	{0x07, "RLCA", 1, 4, &RLCA, "RLCA "},
+	{0x08, "LD", 3, 20, &LD, "LD (a16), SP"},
+	{0x09, "ADD", 1, 8, &ADD, "ADD HL, BC"},
+	{0x0a, "LD", 1, 8, &LD, "LD A, (BC)"},
+	{0x0b, "DEC", 1, 8, &DEC, "DEC BC"},
+	{0x0c, "INC", 1, 4, &INC, "INC C"},
+	{0x0d, "DEC", 1, 4, &DEC, "DEC C"},
+	{0x0e, "LD", 2, 8, &LD, "LD C, d8"},
+	{0x0f, "RRCA", 1, 4, &UNK, "RRCA "},
+	{0x10, "STOP", 1, 4, &UNK, "STOP 0"},
+	{0x11, "LD", 3, 12, &LD, "LD DE, d16"},
+	{0x12, "LD", 1, 8, &LD, "LD (DE), A"},
+	{0x13, "INC", 1, 8, &INC, "INC DE"},
+	{0x14, "INC", 1, 4, &INC, "INC D"},
+	{0x15, "DEC", 1, 4, &DEC, "DEC D"},
+	{0x16, "LD", 2, 8, &LD, "LD D, d8"},
+	{0x17, "RLA", 1, 4, &RLA, "RLA "},
+	{0x18, "JR", 2, 12, &JR, "JR r8"},
+	{0x19, "ADD", 1, 8, &ADD, "ADD HL, DE"},
+	{0x1a, "LD", 1, 8, &LD, "LD A, (DE)"},
+	{0x1b, "DEC", 1, 8, &DEC, "DEC DE"},
+	{0x1c, "INC", 1, 4, &INC, "INC E"},
+	{0x1d, "DEC", 1, 4, &DEC, "DEC E"},
+	{0x1e, "LD", 2, 8, &LD, "LD E, d8"},
+	{0x1f, "RRA", 1, 4, &RRA, "RRA "},
+	{0x20, "JR", 2, 12, &JR, "JR NZ, r8"},
+	{0x21, "LD", 3, 12, &LD, "LD HL, d16"},
+	{0x22, "LD", 1, 8, &LD, "LD (HL+), A"},
+	{0x23, "INC", 1, 8, &INC, "INC HL"},
+	{0x24, "INC", 1, 4, &INC, "INC H"},
+	{0x25, "DEC", 1, 4, &DEC, "DEC H"},
+	{0x26, "LD", 2, 8, &LD, "LD H, d8"},
+	{0x27, "DAA", 1, 4, &UNK, "DAA "},
+	{0x28, "JR", 2, 12, &JR, "JR Z, r8"},
+	{0x29, "ADD", 1, 8, &ADD, "ADD HL, HL"},
+	{0x2a, "LD", 1, 8, &LD, "LD A, (HL+)"},
+	{0x2b, "DEC", 1, 8, &DEC, "DEC HL"},
+	{0x2c, "INC", 1, 4, &INC, "INC L"},
+	{0x2d, "DEC", 1, 4, &DEC, "DEC L"},
+	{0x2e, "LD", 2, 8, &LD, "LD L, d8"},
+	{0x2f, "CPL", 1, 4, &CPL, "CPL "},
+	{0x30, "JR", 2, 12, &JR, "JR NC, r8"},
+	{0x31, "LD", 3, 12, &LD, "LD SP, d16"},
+	{0x32, "LD", 1, 8, &LD, "LD (HL-), A"},
+	{0x33, "INC", 1, 8, &INC, "INC SP"},
+	{0x34, "INC", 1, 12, &INC, "INC (HL)"},
+	{0x35, "DEC", 1, 12, &DEC, "DEC (HL)"},
+	{0x36, "LD", 2, 12, &LD, "LD (HL), d8"},
+	{0x37, "SCF", 1, 4, &UNK, "SCF "},
+	{0x38, "JR", 2, 12, &JR, "JR C, r8"},
+	{0x39, "ADD", 1, 8, &ADD, "ADD HL, SP"},
+	{0x3a, "LD", 1, 8, &LD, "LD A, (HL-)"},
+	{0x3b, "DEC", 1, 8, &DEC, "DEC SP"},
+	{0x3c, "INC", 1, 4, &INC, "INC A"},
+	{0x3d, "DEC", 1, 4, &DEC, "DEC A"},
+	{0x3e, "LD", 2, 8, &LD, "LD A, d8"},
+	{0x3f, "CCF", 1, 4, &UNK, "CCF "},
+	{0x40, "LD", 1, 4, &LD, "LD B, B"},
+	{0x41, "LD", 1, 4, &LD, "LD B, C"},
+	{0x42, "LD", 1, 4, &LD, "LD B, D"},
+	{0x43, "LD", 1, 4, &LD, "LD B, E"},
+	{0x44, "LD", 1, 4, &LD, "LD B, H"},
+	{0x45, "LD", 1, 4, &LD, "LD B, L"},
+	{0x46, "LD", 1, 8, &LD, "LD B, (HL)"},
+	{0x47, "LD", 1, 4, &LD, "LD B, A"},
+	{0x48, "LD", 1, 4, &LD, "LD C, B"},
+	{0x49, "LD", 1, 4, &LD, "LD C, C"},
+	{0x4a, "LD", 1, 4, &LD, "LD C, D"},
+	{0x4b, "LD", 1, 4, &LD, "LD C, E"},
+	{0x4c, "LD", 1, 4, &LD, "LD C, H"},
+	{0x4d, "LD", 1, 4, &LD, "LD C, L"},
+	{0x4e, "LD", 1, 8, &LD, "LD C, (HL)"},
+	{0x4f, "LD", 1, 4, &LD, "LD C, A"},
+	{0x50, "LD", 1, 4, &LD, "LD D, B"},
+	{0x51, "LD", 1, 4, &LD, "LD D, C"},
+	{0x52, "LD", 1, 4, &LD, "LD D, D"},
+	{0x53, "LD", 1, 4, &LD, "LD D, E"},
+	{0x54, "LD", 1, 4, &LD, "LD D, H"},
+	{0x55, "LD", 1, 4, &LD, "LD D, L"},
+	{0x56, "LD", 1, 8, &LD, "LD D, (HL)"},
+	{0x57, "LD", 1, 4, &LD, "LD D, A"},
+	{0x58, "LD", 1, 4, &LD, "LD E, B"},
+	{0x59, "LD", 1, 4, &LD, "LD E, C"},
+	{0x5a, "LD", 1, 4, &LD, "LD E, D"},
+	{0x5b, "LD", 1, 4, &LD, "LD E, E"},
+	{0x5c, "LD", 1, 4, &LD, "LD E, H"},
+	{0x5d, "LD", 1, 4, &LD, "LD E, L"},
+	{0x5e, "LD", 1, 8, &LD, "LD E, (HL)"},
+	{0x5f, "LD", 1, 4, &LD, "LD E, A"},
+	{0x60, "LD", 1, 4, &LD, "LD H, B"},
+	{0x61, "LD", 1, 4, &LD, "LD H, C"},
+	{0x62, "LD", 1, 4, &LD, "LD H, D"},
+	{0x63, "LD", 1, 4, &LD, "LD H, E"},
+	{0x64, "LD", 1, 4, &LD, "LD H, H"},
+	{0x65, "LD", 1, 4, &LD, "LD H, L"},
+	{0x66, "LD", 1, 8, &LD, "LD H, (HL)"},
+	{0x67, "LD", 1, 4, &LD, "LD H, A"},
+	{0x68, "LD", 1, 4, &LD, "LD L, B"},
+	{0x69, "LD", 1, 4, &LD, "LD L, C"},
+	{0x6a, "LD", 1, 4, &LD, "LD L, D"},
+	{0x6b, "LD", 1, 4, &LD, "LD L, E"},
+	{0x6c, "LD", 1, 4, &LD, "LD L, H"},
+	{0x6d, "LD", 1, 4, &LD, "LD L, L"},
+	{0x6e, "LD", 1, 8, &LD, "LD L, (HL)"},
+	{0x6f, "LD", 1, 4, &LD, "LD L, A"},
+	{0x70, "LD", 1, 8, &LD, "LD (HL), B"},
+	{0x71, "LD", 1, 8, &LD, "LD (HL), C"},
+	{0x72, "LD", 1, 8, &LD, "LD (HL), D"},
+	{0x73, "LD", 1, 8, &LD, "LD (HL), E"},
+	{0x74, "LD", 1, 8, &LD, "LD (HL), H"},
+	{0x75, "LD", 1, 8, &LD, "LD (HL), L"},
+	{0x76, "HALT", 1, 4, &UNK, "HALT "},
+	{0x77, "LD", 1, 8, &LD, "LD (HL), A"},
+	{0x78, "LD", 1, 4, &LD, "LD A, B"},
+	{0x79, "LD", 1, 4, &LD, "LD A, C"},
+	{0x7a, "LD", 1, 4, &LD, "LD A, D"},
+	{0x7b, "LD", 1, 4, &LD, "LD A, E"},
+	{0x7c, "LD", 1, 4, &LD, "LD A, H"},
+	{0x7d, "LD", 1, 4, &LD, "LD A, L"},
+	{0x7e, "LD", 1, 8, &LD, "LD A, (HL)"},
+	{0x7f, "LD", 1, 4, &LD, "LD A, A"},
+	{0x80, "ADD", 1, 4, &ADD, "ADD A, B"},
+	{0x81, "ADD", 1, 4, &ADD, "ADD A, C"},
+	{0x82, "ADD", 1, 4, &ADD, "ADD A, D"},
+	{0x83, "ADD", 1, 4, &ADD, "ADD A, E"},
+	{0x84, "ADD", 1, 4, &ADD, "ADD A, H"},
+	{0x85, "ADD", 1, 4, &ADD, "ADD A, L"},
+	{0x86, "ADD", 1, 8, &ADD, "ADD A, (HL)"},
+	{0x87, "ADD", 1, 4, &ADD, "ADD A, A"},
+	{0x88, "ADC", 1, 4, &ADC, "ADC A, B"},
+	{0x89, "ADC", 1, 4, &ADC, "ADC A, C"},
+	{0x8a, "ADC", 1, 4, &ADC, "ADC A, D"},
+	{0x8b, "ADC", 1, 4, &ADC, "ADC A, E"},
+	{0x8c, "ADC", 1, 4, &ADC, "ADC A, H"},
+	{0x8d, "ADC", 1, 4, &ADC, "ADC A, L"},
+	{0x8e, "ADC", 1, 8, &ADC, "ADC A, (HL)"},
+	{0x8f, "ADC", 1, 4, &ADC, "ADC A, A"},
+	{0x90, "SUB", 1, 4, &SUB, "SUB B"},
+	{0x91, "SUB", 1, 4, &SUB, "SUB C"},
+	{0x92, "SUB", 1, 4, &SUB, "SUB D"},
+	{0x93, "SUB", 1, 4, &SUB, "SUB E"},
+	{0x94, "SUB", 1, 4, &SUB, "SUB H"},
+	{0x95, "SUB", 1, 4, &SUB, "SUB L"},
+	{0x96, "SUB", 1, 8, &SUB, "SUB (HL)"},
+	{0x97, "SUB", 1, 4, &SUB, "SUB A"},
+	{0x98, "SBC", 1, 4, &SBC, "SBC A, B"},
+	{0x99, "SBC", 1, 4, &SBC, "SBC A, C"},
+	{0x9a, "SBC", 1, 4, &SBC, "SBC A, D"},
+	{0x9b, "SBC", 1, 4, &SBC, "SBC A, E"},
+	{0x9c, "SBC", 1, 4, &SBC, "SBC A, H"},
+	{0x9d, "SBC", 1, 4, &SBC, "SBC A, L"},
+	{0x9e, "SBC", 1, 8, &SBC, "SBC A, (HL)"},
+	{0x9f, "SBC", 1, 4, &SBC, "SBC A, A"},
+	{0xa0, "AND", 1, 4, &AND, "AND B"},
+	{0xa1, "AND", 1, 4, &AND, "AND C"},
+	{0xa2, "AND", 1, 4, &AND, "AND D"},
+	{0xa3, "AND", 1, 4, &AND, "AND E"},
+	{0xa4, "AND", 1, 4, &AND, "AND H"},
+	{0xa5, "AND", 1, 4, &AND, "AND L"},
+	{0xa6, "AND", 1, 8, &AND, "AND (HL)"},
+	{0xa7, "AND", 1, 4, &AND, "AND A"},
+	{0xa8, "XOR", 1, 4, &XOR, "XOR B"},
+	{0xa9, "XOR", 1, 4, &XOR, "XOR C"},
+	{0xaa, "XOR", 1, 4, &XOR, "XOR D"},
+	{0xab, "XOR", 1, 4, &XOR, "XOR E"},
+	{0xac, "XOR", 1, 4, &XOR, "XOR H"},
+	{0xad, "XOR", 1, 4, &XOR, "XOR L"},
+	{0xae, "XOR", 1, 8, &XOR, "XOR (HL)"},
+	{0xaf, "XOR", 1, 4, &XOR, "XOR A"},
+	{0xb0, "OR", 1, 4, &OR, "OR B"},
+	{0xb1, "OR", 1, 4, &OR, "OR C"},
+	{0xb2, "OR", 1, 4, &OR, "OR D"},
+	{0xb3, "OR", 1, 4, &OR, "OR E"},
+	{0xb4, "OR", 1, 4, &OR, "OR H"},
+	{0xb5, "OR", 1, 4, &OR, "OR L"},
+	{0xb6, "OR", 1, 8, &OR, "OR (HL)"},
+	{0xb7, "OR", 1, 4, &OR, "OR A"},
+	{0xb8, "CP", 1, 4, &CP, "CP B"},
+	{0xb9, "CP", 1, 4, &CP, "CP C"},
+	{0xba, "CP", 1, 4, &CP, "CP D"},
+	{0xbb, "CP", 1, 4, &CP, "CP E"},
+	{0xbc, "CP", 1, 4, &CP, "CP H"},
+	{0xbd, "CP", 1, 4, &CP, "CP L"},
+	{0xbe, "CP", 1, 8, &CP, "CP (HL)"},
+	{0xbf, "CP", 1, 4, &CP, "CP A"},
+	{0xc0, "RET", 1, 20, &RET, "RET NZ"},
+	{0xc1, "POP", 1, 12, &POP, "POP BC"},
+	{0xc2, "JP", 3, 16, &JP, "JP NZ, a16"},
+	{0xc3, "JP", 3, 16, &JP, "JP a16"},
+	{0xc4, "CALL", 3, 24, &CALL, "CALL NZ, a16"},
+	{0xc5, "PUSH", 1, 16, &PUSH, "PUSH BC"},
+	{0xc6, "ADD", 2, 8, &ADD, "ADD A, d8"},
+	{0xc7, "RST", 1, 16, &RST, "RST 00H"},
+	{0xc8, "RET", 1, 20, &RET, "RET Z"},
+	{0xc9, "RET", 1, 16, &RET, "RET "},
+	{0xca, "JP", 3, 16, &JP, "JP Z, a16"},
+	{0xcb, "PREFIX", 1, 4, &UNK, "PREFIX CB"},
+	{0xcc, "CALL", 3, 24, &CALL, "CALL Z, a16"},
+	{0xcd, "CALL", 3, 24, &CALL, "CALL a16"},
+	{0xce, "ADC", 2, 8, &ADC, "ADC A, d8"},
+	{0xcf, "RST", 1, 16, &RST, "RST 08H"},
+	{0xd0, "RET", 1, 20, &RET, "RET NC"},
+	{0xd1, "POP", 1, 12, &POP, "POP DE"},
+	{0xd2, "JP", 3, 16, &JP, "JP NC, a16"},
+	{0xd3, "UNK", 0, 0, &UNK, "UNK"},
+	{0xd4, "CALL", 3, 24, &CALL, "CALL NC, a16"},
+	{0xd5, "PUSH", 1, 16, &PUSH, "PUSH DE"},
+	{0xd6, "SUB", 2, 8, &SUB, "SUB d8"},
+	{0xd7, "RST", 1, 16, &RST, "RST 10H"},
+	{0xd8, "RET", 1, 20, &RET, "RET C"},
+	{0xd9, "RETI", 1, 16, &RETI, "RETI "},
+	{0xda, "JP", 3, 16, &JP, "JP C, a16"},
+	{0xdb, "UNK", 0, 0, &UNK, "UNK"},
+	{0xdc, "CALL", 3, 24, &CALL, "CALL C, a16"},
+	{0xdd, "UNK", 0, 0, &UNK, "UNK"},
+	{0xde, "SBC", 2, 8, &SBC, "SBC A, d8"},
+	{0xdf, "RST", 1, 16, &RST, "RST 18H"},
+	{0xe0, "LDH", 2, 12, &LDH, "LDH (a8), A"},
+	{0xe1, "POP", 1, 12, &POP, "POP HL"},
+	{0xe2, "LD", 1, 8, &LD, "LD (C), A"},
+	{0xe3, "UNK", 0, 0, &UNK, "UNK"},
+	{0xe4, "UNK", 0, 0, &UNK, "UNK"},
+	{0xe5, "PUSH", 1, 16, &PUSH, "PUSH HL"},
+	{0xe6, "AND", 2, 8, &AND, "AND d8"},
+	{0xe7, "RST", 1, 16, &RST, "RST 20H"},
+	{0xe8, "ADD", 2, 16, &ADD, "ADD SP, r8"},
+	{0xe9, "JP", 1, 4, &JP, "JP (HL)"},
+	{0xea, "LD", 3, 16, &LD, "LD (a16), A"},
+	{0xeb, "UNK", 0, 0, &UNK, "UNK"},
+	{0xec, "UNK", 0, 0, &UNK, "UNK"},
+	{0xed, "UNK", 0, 0, &UNK, "UNK"},
+	{0xee, "XOR", 2, 8, &XOR, "XOR d8"},
+	{0xef, "RST", 1, 16, &RST, "RST 28H"},
+	{0xf0, "LDH", 2, 12, &LDH, "LDH A, (a8)"},
+	{0xf1, "POP", 1, 12, &POP, "POP AF"},
+	{0xf2, "LD", 1, 8, &LD, "LD A, (C)"},
+	{0xf3, "DI", 1, 4, &DI, "DI "},
+	{0xf4, "UNK", 0, 0, &UNK, "UNK"},
+	{0xf5, "PUSH", 1, 16, &PUSH, "PUSH AF"},
+	{0xf6, "OR", 2, 8, &OR, "OR d8"},
+	{0xf7, "RST", 1, 16, &RST, "RST 30H"},
+	{0xf8, "LD", 2, 12, &LD, "LD HL, SP+r8"},
+	{0xf9, "LD", 1, 8, &LD, "LD SP, HL"},
+	{0xfa, "LD", 3, 16, &LD, "LD A, (a16)"},
+	{0xfb, "EI", 1, 4, &EI, "EI "},
+	{0xfc, "UNK", 0, 0, &UNK, "UNK"},
+	{0xfd, "UNK", 0, 0, &UNK, "UNK"},
+	{0xfe, "CP", 2, 8, &CP, "CP d8"},
+	{0xff, "RST", 1, 16, &RST, "RST 38H"},
+
 };
 
 const opcodes_s prefixed_opcodes[] = {
@@ -602,5 +572,7 @@ const opcodes_s prefixed_opcodes[] = {
 	  {0xfd, "SET", 2, 8, &SET, "SET 7, L"},
 	  {0xfe, "SET", 2, 16, &SET, "SET 7, (HL)"},
 	  {0xff, "SET", 2, 8, &SET, "SET 7, A"},
+
 };
+
 #endif

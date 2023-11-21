@@ -3,14 +3,16 @@
 #include <stdio.h>
 #include <iostream>
 #include <bitset>
+#include "view.hpp"
 
 /**
  * PPU - Pixel Processing Unit
  */
 
-PPU::PPU(CPU *p_cpu, MemoryController *p_m, SDL_Renderer *renderer)
+PPU::PPU(CPU *p_cpu, MemoryController *p_m)
 {
     set_memory_controller(p_m);
+
     this->renderer = renderer;
     this->cpu = p_cpu;
 
@@ -22,7 +24,7 @@ PPU::PPU(CPU *p_cpu, MemoryController *p_m, SDL_Renderer *renderer)
     p_SCY = p_memory->get_pointer(SCY);
 
     p_colPalette = p_memory->get_pointer(COLOR_PALETTE);
-    pf = new PixelFetcher();
+    // pf = new PixelFetcher();
 
     // *p_LY = 90;
 }
@@ -157,7 +159,7 @@ void PPU::draw_sprite(uint16_t sprite_address)
         uint8_t x = x_pos * 8 + tile_offset_x;
         uint8_t y = current_scanline;
 
-        uint8_t pixel_value = ((tile_data_lsb >> (7-tile_offset_x)) & 1) | ((tile_data_msb >> (7 - tile_offset_x)) & 1) << 1;
+        uint8_t pixel_value = ((tile_data_lsb >> (7 - tile_offset_x)) & 1) | ((tile_data_msb >> (7 - tile_offset_x)) & 1) << 1;
         if (pixel_value != 0)
         {
             SDL_RenderDrawPoint(renderer, x, y);
@@ -269,19 +271,19 @@ void PPU::set_memory_controller(MemoryController *p_m)
     p_memory = p_m;
 }
 
-/** Pixel Fetcher **/
-void PixelFetcher::get_tile()
-{
-    // x = ((SCX / 8) + x) & $1F;
-    // y = (y + SCY) & 255;
-}
+// /** Pixel Fetcher **/
+// void PixelFetcher::get_tile()
+// {
+//     // x = ((SCX / 8) + x) & $1F;
+//     // y = (y + SCY) & 255;
+// }
 
-void PixelFetcher::get_data()
-{
-}
+// void PixelFetcher::get_data()
+// {
+// }
 
-void PixelFetcher::clear_queues()
-{
-    obj_FIFO.clear();
-    bgd_FIFO.clear();
-}
+// void PixelFetcher::clear_queues()
+// {
+//     obj_FIFO.clear();
+//     bgd_FIFO.clear();
+// }

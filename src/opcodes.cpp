@@ -6,13 +6,11 @@
 #include "cpu.hpp"
 
 // http://www.z80.info/decoding.htm
+uint8_t x, y, z;
 
-#define CONST_ZERO_FLAG (1 << 7)
-#define CONST_SUBSTRACT_FLAG (1 << 6)
-#define CONST_HALFCARRY_FLAG (1 << 5)
-#define CONST_CARRY_FLAG (1 << 4)
-
-void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2){};
+void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2){
+    // Easy, do nothing!
+};
 
 void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
@@ -23,9 +21,8 @@ void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     if (x == 1)
     {
@@ -162,7 +159,7 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
+    uint8_t opcode = cpu.current_opcode;
     uint8_t *p_in;
     // uint8_t *p_out;
     uint16_t address_out;
@@ -188,9 +185,8 @@ void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void ADD16(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t p = (y & 6) >> 1;
 
     *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
@@ -211,9 +207,8 @@ void ADD16(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void ADD8(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t value;
 
     if (opcode == 0xC6)
@@ -249,12 +244,11 @@ void ADD8(CPU &cpu, uint8_t arg1, uint8_t arg2)
 }
 void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
     if (opcode == 0xe8)
     {
-        
+
         *cpu.flags &= ~CONST_HALFCARRY_FLAG;
         if ((cpu.SP & 0x0F) + ((int8_t)arg1 & 0x0F) > 0x0F)
         {
@@ -290,9 +284,8 @@ void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
 
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     uint8_t value;
     if (opcode == 0xce)
@@ -339,7 +332,7 @@ void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
+    uint8_t opcode = cpu.current_opcode;
 
     *cpu.flags |= CONST_SUBSTRACT_FLAG;
     *cpu.flags &= ~CONST_HALFCARRY_FLAG;
@@ -394,9 +387,8 @@ void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
     if (y == 3)
     {
         uint8_t carry = (*cpu.flags & CONST_CARRY_FLAG) >> 4;
@@ -442,9 +434,8 @@ void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void INC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t p = (y & 6) >> 1;
 
     if (z == 4)
@@ -482,9 +473,8 @@ void INC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     // uint8_t q = y & (1 << 0);
     uint8_t p = (y & 6) >> 1;
@@ -546,9 +536,8 @@ void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void JP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     uint16_t address;
     if (opcode == 0xe9)
@@ -600,9 +589,8 @@ void JP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void JR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
     int offset = (int8_t)arg1;
     // std::cout << std::dec << i-2 << std::endl;
     if (y == 3)
@@ -645,9 +633,8 @@ void JR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void AND(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t value;
     if (opcode == 0xe6)
     {
@@ -680,9 +667,8 @@ void AND(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
 
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     if (x == 2)
     {
@@ -715,9 +701,8 @@ void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void OR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     if (opcode == 0xf6)
     {
@@ -756,7 +741,7 @@ void EI(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void CP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
+    uint8_t opcode = cpu.current_opcode;
     // x = 2, y=7
 
     uint8_t value;
@@ -770,8 +755,8 @@ void CP(CPU &cpu, uint8_t arg1, uint8_t arg2)
     }
     else
     {
-        uint8_t x, y, z;
-        cpu.extract_grouping(opcode, x, y, z);
+
+        cpu.compute_current_opcode_groupings(x, y, z);
         value = *cpu.registers[z];
     }
 
@@ -815,16 +800,15 @@ void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     // uint16_t addr = arg1 << 8 | arg2;
-    uint8_t opcode = cpu.m.read(cpu.PC);
+    uint8_t opcode = cpu.current_opcode;
 
     bool cc = false;
 
     if (opcode != 0xcd)
     {
         // call cc, nn
-        uint8_t x, y, z;
 
-        cpu.extract_grouping(opcode, x, y, z);
+        cpu.compute_current_opcode_groupings(x, y, z);
 
         // RET cc - Conditional return
         switch (y)
@@ -853,9 +837,7 @@ void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t p = (y & 6) >> 1;
 
     uint16_t value = *cpu.registers16_2[p];
@@ -864,9 +846,7 @@ void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void POP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t p = (y & 6) >> 1;
 
     *cpu.registers16_2[p] = cpu.pop();
@@ -874,9 +854,7 @@ void POP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void RET(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     bool ret = false;
     if (z == 0)
@@ -927,9 +905,8 @@ void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void RST(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     // Restart
-    uint8_t opcode = cpu.m.read(cpu.PC);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     cpu.push(cpu.PC);
     cpu.PC = y * 8 - 1;
@@ -947,8 +924,7 @@ void RST(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void RES(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     uint8_t *p_reg = cpu.registers[z];
 
@@ -959,14 +935,7 @@ void RES(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
-    // std::cout << std::endl;
-    // // uint8_t *p_reg = cpu.registers[z];
-    // std::cout << (int)z << std::endl;
-    // std::cout << std::hex << (int)(*cpu.registers[z]) << std::endl;
-    // std::cout << (int)y << std::endl;
-    // std::cout << std::bitset<8>(*cpu.flags) << std::endl;
+    cpu.compute_current_opcode_groupings(x, y, z);
     if (!(*cpu.registers[z] & (1 << y)))
     {
         *cpu.flags |= CONST_ZERO_FLAG;
@@ -1069,10 +1038,7 @@ void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    // if(cpu.PC = 0xc464) {cpu.step_by_step = true;}
-    // cpu.print_registers();
     rotate_right(cpu, cpu.p_A); // register 'A'
-    // if(cpu.PC = 0xc464) {cpu.step_by_step = true;}
 
     // According to BLARGG, the manual is wrong about flags
     // Z flag always set to zero, except for extented instructions
@@ -1084,23 +1050,20 @@ void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void RL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
     rotate_left(cpu, cpu.registers[z]);
 }
 
 void RR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
     rotate_right(cpu, cpu.registers[z]);
 }
 
 void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    uint8_t x, y, z;
 
     *cpu.flags &= ~CONST_ZERO_FLAG;
     *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
@@ -1120,8 +1083,7 @@ void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
 
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t *p_value;
     if (opcode == 0x36)
     {
@@ -1150,8 +1112,7 @@ void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void SET(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    uint8_t x, y, z;
-    cpu.extract_grouping(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
     // SET y, r[z]
     *cpu.get_register(z) |= (1 << y);
 }
