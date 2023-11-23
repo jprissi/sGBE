@@ -6,14 +6,24 @@
 
 #include "memory.hpp"
 
+#define CPU_FREQ 4.194304e6 // Hz
+
+// + IME (flag internal to the CPU)
 #define InterruptFlagAddress 0xFF0F
 #define InterruptEnableAddress 0xFFFF
 
 #define DMA 0xFF46
 
+#define DIV 0xFF04  // Divider register
+#define TIMA 0xFF05 // Timer counter
+#define TMA 0xFF06  // Timer modulo
+#define TAC 0xFF07  // Timer control
+
 #define INT_VBLANK 1 << 0
-#define INT_JOYPAD 1 << 4
+#define INT_LCD 1 << 1
+#define INT_TIMER 1 << 2
 #define INT_SERIAL 1 << 3
+#define INT_JOYPAD 1 << 4
 
 #define CONST_ZERO_FLAG (1 << 7)
 #define CONST_SUBSTRACT_FLAG (1 << 6)
@@ -31,10 +41,20 @@ private:
   void assert_init();
 
   void handle_interrupts();
-  bool interrupts_enabled = false; // IME flag, disabled at start
+
+  /* Timer (put into its own class?) */
+  uint32_t cycles_count_div;
+  uint32_t cycles_count;
+  void handle_timer(uint8_t cycles);
 
 public:
+  
+  uint8_t timeout = 30;
+  std::ofstream log_file;
+  bool skip_interrupts = false;
+  bool interrupts_enabled = false; // IME flag, disabled at start
   bool halt = false;
+  bool increment_pc_next = true;
 
   uint16_t BC, DE, HL, AF;
   uint8_t *p_F = (uint8_t *)&AF;
@@ -81,7 +101,7 @@ public:
   void log(std::ofstream &file);
   bool step_by_step = false;
 
-  bool enable_interrupts_next = false; // Or use a counter instead
+  bool enable_interrupts_next = false;  // Or use a counter instead
   bool disable_interrupts_next = false; // Or use a counter instead
   void enable_interrupts();
   void disable_interrupts();
@@ -93,11 +113,10 @@ public:
   uint8_t *p_IF; // Interrupt Flag (0xFF0F)
   uint8_t *p_IE; // Interrupt Enable (0xFFFF)
 
-  uint8_t step(uint8_t opcode);
+  uint8_t step(uint8_t opcode, bool log_to_file = false);
   void compute_opcode_groupings(uint8_t &opcode, uint8_t &x, uint8_t &y, uint8_t &z);
   void compute_current_opcode_groupings(uint8_t &x, uint8_t &y, uint8_t &z);
   void print_registers();
-
 
   void call(uint8_t arg1, uint8_t arg2);
   void push(uint16_t value);

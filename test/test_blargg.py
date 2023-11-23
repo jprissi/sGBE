@@ -24,31 +24,36 @@ cartridge_path = [base_path + cartridge for cartridge in cartridges]
 
 cur_path = os.getcwd()
 
+
+os.chdir("../build/")
+popen = subprocess.Popen(["make"], stdout=subprocess.PIPE)
+popen.wait()
+output = popen.stdout.read()
+print(output.decode())
+
 for idx, path in enumerate(cartridge_path):
-    if idx <= 6:
-        continue
+    # if idx <= 6:
+    #     continue
 
-    print(f"Running {cartridges[idx]}...")
+    print(f"Running {cartridges[idx]}...", end='')
 
-    os.chdir("../build/")
-    popen = subprocess.Popen(["make"], stdout=subprocess.PIPE)
-    popen.wait()
-    output = popen.stdout.read()
-    print(output.decode())
+    
     args = (binary, path)
     popen = subprocess.Popen(args, stdout=subprocess.PIPE)
     popen.wait()
-    # output = popen.stdout.read()
-    # print(output)
-
-    args = ("./gameboy-doctor", logfile, "cpu_instrs", str(idx + 1))
-    os.chdir(cur_path + "/" + gbdoctor_path)
-    popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-    popen.wait()
     output = popen.stdout.read()
-    if popen.returncode != 0:
-        print(output.decode())
-        break
+    print(output)
+    print(output.decode().strip().split('\n')[-1])
+    continue
+
+    # args = ("./gameboy-doctor", logfile, "cpu_instrs", str(idx + 1))
+    # os.chdir(cur_path + "/" + gbdoctor_path)
+    # popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+    # popen.wait()
+    # output = popen.stdout.read()
+    # if popen.returncode != 0:
+    #     print(output.decode())
+    #     break
 
 # cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/01-special.gb"; // OK!
 # cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"; // Need timer interrupt

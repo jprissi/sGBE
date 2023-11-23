@@ -26,8 +26,10 @@ PPU::PPU(CPU *p_cpu, MemoryController *p_m, View *p_view, bool debug_implementat
     p_colPalette = p_memory->get_pointer(COLOR_PALETTE);
     // pf = new PixelFetcher();
 
+    if (debug_implementation)
+        *p_LY = 0x90; // For Blargg
     // *p_LY = 0x94; // For tetris
-    // *p_LY = 0x90; // For Blargg
+    
 }
 
 void PPU::OAM_scan()

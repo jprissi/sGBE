@@ -10,13 +10,32 @@
 uint8_t x, y, z;
 
 void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2){
+    // cpu.PC++;
     // Easy, do nothing!
 };
 
 void HALT(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
+    // https://raw.githubusercontent.com/geaz/emu-gameboy/master/docs/The%20Cycle-Accurate%20Game%20Boy%20Docs.pdf
     cpu.halt = true;
-    cpu.PC--;
+
+    // If DI, skipping next instruction
+    if (!cpu.interrupts_enabled)
+    {
+        // IME = 0
+        if ((*cpu.p_IE & *cpu.p_IF) == 0)
+        {
+            std::cout << "skip interrupts" << std::endl;
+            cpu.skip_interrupts = true;
+        }
+        else
+        {
+            // Halt bug occurs
+            cpu.halt = false;
+            // cpu.increment_pc_next = false;
+        }
+        // cpu.PC += 1;
+    }
 }
 
 void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2)
@@ -375,50 +394,52 @@ void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2)
     *cpu.flags &= ~CONST_CARRY_FLAG;
     *cpu.flags &= ~CONST_ZERO_FLAG;
 
-    if (opcode == 0x90)
+    uint8_t *p_value;
+    switch (opcode)
     {
-        if (*cpu.p_A < *cpu.p_B)
-        {
-            *cpu.flags |= CONST_CARRY_FLAG;
-        }
-        if ((int)(*cpu.p_A & 0x0F) - (int)(*cpu.p_B & 0x0F) < 0)
-        {
-            *cpu.flags |= CONST_HALFCARRY_FLAG;
-        }
-        (*cpu.p_A) -= (*cpu.p_B);
-        if ((*cpu.p_A) == 0)
-        {
-            *cpu.flags |= CONST_ZERO_FLAG;
-        }
+    case 0x97:
+        p_value = cpu.p_A;
+        break;
+    case 0x90:
+        p_value = cpu.p_B;
+        break;
+    case 0x91:
+        p_value = cpu.p_C;
+        break;
+    case 0x92:
+        p_value = cpu.p_D;
+        break;
+    case 0x93:
+        p_value = cpu.p_E;
+        break;
+    case 0x94:
+        p_value = cpu.p_H;
+        break;
+    case 0x95:
+        p_value = cpu.p_L;
+        break;
+    case 0x96:
+        p_value = cpu.m.get_pointer(cpu.HL);
+        break;
+    case 0xD6:
+        p_value = &arg1;
+        break;
     }
-    else if (opcode == 0xd6)
-    {
-        // cpu.step_by_step = true;
-        // SUB d8
-        if (*cpu.p_A < arg1)
-        {
-            *cpu.flags |= CONST_CARRY_FLAG;
-        }
-        // if ((*cpu.p_A & 0x0F) < arg1)
-        // {
-        //     *cpu.flags |= CONST_HALFCARRY_FLAG;
-        // }
-        if ((int)(*cpu.p_A & 0xf) - (int)(arg1 & 0xf) < 0)
-        {
-            *cpu.flags = *cpu.flags | CONST_HALFCARRY_FLAG;
-        }
 
-        *cpu.p_A -= arg1;
-        if ((*cpu.p_A) == 0)
-        {
-            *cpu.flags |= CONST_ZERO_FLAG;
-        }
-    }
-    else
+    if (*cpu.p_A < *p_value)
     {
-        std::cout << "UNK (ADD) " << std::endl;
-        exit(1);
+        *cpu.flags |= CONST_CARRY_FLAG;
     }
+    if ((int)(*cpu.p_A & 0x0F) - (int)(*p_value & 0x0F) < 0)
+    {
+        *cpu.flags |= CONST_HALFCARRY_FLAG;
+    }
+    (*cpu.p_A) -= (*p_value);
+    if ((*cpu.p_A) == 0)
+    {
+        *cpu.flags |= CONST_ZERO_FLAG;
+    }
+
 }
 
 void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2)
@@ -992,8 +1013,7 @@ void RST(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void RES(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     uint8_t *p_reg = cpu.registers[z];
 
@@ -1003,8 +1023,7 @@ void RES(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     if (!(*cpu.registers[z] & (1 << y)))
     {
@@ -1069,6 +1088,13 @@ void rotate_right(CPU &cpu, uint8_t *p_reg)
     }
 }
 
+void RL(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    cpu.compute_current_opcode_groupings(x, y, z);
+
+    rotate_left(cpu, cpu.registers[z]);
+}
+
 void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t carry = (*cpu.flags & CONST_CARRY_FLAG) >> 4;
@@ -1106,6 +1132,12 @@ void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
     }
 }
 
+void RR(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    cpu.compute_current_opcode_groupings(x, y, z);
+    rotate_right(cpu, cpu.registers[z]);
+}
+
 void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     rotate_right(cpu, cpu.p_A); // register 'A'
@@ -1117,25 +1149,24 @@ void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
     (*cpu.flags) &= ~CONST_ZERO_FLAG;
 }
 
-void RL(CPU &cpu, uint8_t arg1, uint8_t arg2)
+void RRCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
+    uint8_t value = *cpu.p_A;
+    *cpu.flags |= (value & 1) << 4;
+    *cpu.p_A = value >> 1 | (value << 7 & (1 << 7));
 
-    rotate_left(cpu, cpu.registers[z]);
-}
-
-void RR(CPU &cpu, uint8_t arg1, uint8_t arg2)
-{
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
-    rotate_right(cpu, cpu.registers[z]);
+    *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
+    *cpu.flags &= ~CONST_HALFCARRY_FLAG;
+    *cpu.flags &= ~CONST_ZERO_FLAG;
+    if (*cpu.p_A == 0)
+    {
+        *cpu.flags |= CONST_ZERO_FLAG;
+    }
 }
 
 void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     *cpu.flags &= ~CONST_ZERO_FLAG;
     *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
@@ -1151,9 +1182,23 @@ void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2)
     }
 }
 
-void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2){
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
+void SCF(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
+    *cpu.flags &= ~CONST_HALFCARRY_FLAG;
+    *cpu.flags |= CONST_CARRY_FLAG;
+}
+
+void CCF(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    *cpu.flags &= ~CONST_SUBSTRACT_FLAG;
+    *cpu.flags &= ~CONST_HALFCARRY_FLAG;
+    *cpu.flags = !(CONST_CARRY_FLAG & *cpu.flags);
+}
+
+void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     *cpu.flags = (((*cpu.get_register(z) >> 7) & 1) << 4); // Bit 7 to carry
 
@@ -1204,9 +1249,8 @@ void DAA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
+    uint8_t opcode = cpu.current_opcode;
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     uint8_t *p_value;
     if (opcode == 0x36)
@@ -1235,8 +1279,7 @@ void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void SET(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.m.read(cpu.PC + 1);
-    cpu.compute_opcode_groupings(opcode, x, y, z);
+    cpu.compute_current_opcode_groupings(x, y, z);
 
     // SET y, r[z]
     *cpu.get_register(z) |= (1 << y);

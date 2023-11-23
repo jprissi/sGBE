@@ -36,7 +36,8 @@ implemented = [
     "DI", "EI",
     "CP",
     "RST",
-    "RLA", "RRA", "RLCA", "DAA", "SLA",
+    "RLA", "RRA", "RRCA", "RLCA", "DAA", "SLA", 
+    "SCF", "CCF",
     # CB-prefixed
     "RES", "BIT", "RL", "RR", "SWAP", "SRL",
     "SET"

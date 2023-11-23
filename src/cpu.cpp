@@ -85,22 +85,21 @@ void CPU::push(uint16_t value)
 
   // uint8_t arg1 = (value & 0xFF00) >> 8;
   // uint8_t arg2 = (value & 0x00FF);
-  
+
   this->SP--;
   this->m.write(this->SP, value >> 8);
   this->SP--;
   this->m.write(this->SP, value & 0xFF);
-  
+
   // uint8_t *p_rom = this->m.get_pointer(this->SP);
   // *p_rom = arg1;
   // *(p_rom-1) = arg2;
   // this->SP-=2;
-
 }
 
 uint16_t CPU::pop()
 {
-  
+
   // uint8_t *p_rom = this->m.get_pointer(this->SP);
   uint8_t arg1 = this->m.read(this->SP);
   (this->SP)++;
@@ -131,12 +130,24 @@ void CPU::handle_interrupts()
   {
     interrupt_enabled = ((this->m.read(InterruptEnableAddress) >> i) & 1);
     interrupt_requested = ((this->m.read(InterruptFlagAddress) >> i) & 1);
-    
+
     // std::cout << std::hex << (int)interrupt_enabled << "; " << (int)interrupt_requested << std::endl;
-    if (interrupt_enabled && interrupt_requested)
+    if ((interrupt_enabled && interrupt_requested))
+    // Apparently halt does not need IME to be set
     {
       std::cout << "Interrupt!" << std::endl;
-      this->halt = false; // Just in case
+      // this->step_by_step = true;
+      if (this->halt)
+      {
+        // this->step_by_step = true;
+        this->halt = false; // Just in case
+        if (this->skip_interrupts)
+        {
+          this->skip_interrupts = false;
+          return;
+        }
+        // this->PC ++;
+      }
       // this->step_by_step = true;
       this->interrupts_enabled = false;                              // Disabled IME
       uint8_t flag = this->m.read(InterruptFlagAddress) & ~(1 << i); // Reset interrupt flag
@@ -149,7 +160,7 @@ void CPU::handle_interrupts()
 
       // std::cout << "mem[0x40] = " << std::hex << (int)this->m.read(0x40) << std::endl;
       // this->step_by_step = true;
-      
+
       this->PC -= this->next_instruction_relative_pos; // quick fix because of call incrementing pc and interrupts being called after pc is updated
       this->call((uint8_t)((i * 8) + 0x40) + this->next_instruction_relative_pos, (uint8_t)0x00);
 
@@ -159,7 +170,74 @@ void CPU::handle_interrupts()
   }
 }
 
+void CPU::handle_timer(uint8_t cycles)
+{
+  cycles_count_div += cycles;
+  uint8_t val = cycles_count_div * 16.384e3 / CPU_FREQ;
+  if (val > 0)
+  {
+    cycles_count_div -= val * CPU_FREQ / 16.384e3;
+  }
 
+  uint8_t div = this->m.read(DIV);
+  this->m.write(DIV, div + val); // Loops at FF00 (int16_t is enough));
+
+  uint8_t tac = this->m.read(TAC);
+  bool tima_enabled = (tac >> 2) & 1;
+
+  if (tima_enabled)
+  {
+
+    uint16_t clock_divider;
+    switch (tac & 3)
+    {
+    case 0:
+      clock_divider = 1024;
+      break;
+    case 1:
+      clock_divider = 16;
+      break;
+    case 2:
+      clock_divider = 64;
+      break;
+    case 3:
+      clock_divider = 256;
+      break;
+    };
+
+    uint8_t tima = this->m.read(TIMA);
+    cycles_count += cycles;
+    uint8_t val = cycles_count * (CPU_FREQ / clock_divider) / CPU_FREQ;
+    if (val > 0)
+    {
+      cycles_count -= val / ((CPU_FREQ / clock_divider) / CPU_FREQ);
+    }
+
+    // std::cout << (int)clock_divider << std::endl;
+    // std::cout << std::hex << (int)cycles_count << std::endl;
+    // std::cout << std::hex << (int)val << std::endl;
+    // std::cout << "tima (before): " << std::hex << (int)tima << std::endl;
+    // this->step_by_step = true;
+
+    if ((uint16_t)tima + (uint16_t)val > 0xFF)
+    {
+      std::cout << "Timer Interrupt" << std::endl;
+      // this->step_by_step = true;
+      // When timer overflows
+      this->request_interrupt(INT_TIMER);
+      uint8_t tma = this->m.read(TMA);
+      tima = tma;
+      this->m.write(TIMA, tima);
+    }
+    else
+    {
+      tima += val;
+      this->m.write(TIMA, tima);
+    }
+
+    // std::cout << "tima (after): " << std::hex << (int)tima << std::endl;
+  }
+};
 
 void CPU::request_interrupt(uint8_t interrupt)
 {
@@ -197,12 +275,14 @@ void CPU::assert_init()
   // assert(this->PC == 0x0100);
 }
 
-uint8_t CPU::step(uint8_t opcode)
+uint8_t CPU::step(uint8_t opcode, bool log_to_file)
 {
   // http://www.z80.info/decoding.htm
-
-  std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)opcode << " ";
-
+  if (!this->halt)
+  {
+    if (log_to_file)
+      this->log(this->log_file);
+  }
   // Everything we need to run instructions
   std::string mnemonic("");
   int num_args, cycles = 0;
@@ -224,7 +304,10 @@ uint8_t CPU::step(uint8_t opcode)
     prefixed = true;
     prefix = opcode; // should be CB
     opcode = this->m.read(this->PC + 1);
+    this->current_opcode = opcode;
+    
     current_op = prefixed_opcodes[opcode];
+    
   }
 
   mnemonic = (char *)current_op.mn;
@@ -238,31 +321,25 @@ uint8_t CPU::step(uint8_t opcode)
 
   if (num_args > 0)
   {
-    std::cout << "args: ";
+    // std::cout << "args: ";
     for (int i = 1; i < num_args + 1; ++i)
     {
       // Starting from 1 to remove current opcode
       int offset = prefixed; // 0 or 1;
-      std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)this->m.read(this->PC + i) + offset << " ";
+      // std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)this->m.read(this->PC + i) + offset << " ";
       args[i - 1] = (uint8_t)this->m.read(this->PC + i + offset);
     }
-  }
-  else
-  {
-    std::cout << "\t";
   }
 
   // How many bytes forward
   next_instruction_relative_pos = 1 + num_args;
-
-  std::cout << "\t" << current_op.label;
 
   if (this->PC == 0x100)
   {
     assert_init();
   }
 
-  if (this->PC == breakpoint )
+  if (this->PC == breakpoint)
   {
     std::cout << std::endl
               << "breakpoint (step-by-step, press key to go forward)" << std::endl;
@@ -271,40 +348,90 @@ uint8_t CPU::step(uint8_t opcode)
     // exit(0);
   }
 
-  if (this->enable_interrupts_next){
+  if (this->enable_interrupts_next)
+  {
     std::cout << "enabling interrupts";
     // this->step_by_step=true;
     this->enable_interrupts(); // Won't prevent execution of current instruction
     this->enable_interrupts_next = false;
   }
-  if (this->disable_interrupts_next){
+  if (this->disable_interrupts_next)
+  {
     std::cout << "disabling interrupts";
     this->disable_interrupts();
-    this->disable_interrupts_next=false;
-
+    this->disable_interrupts_next = false;
   }
 
-  if (!this->halt){
-    
-  // Run instruction
-  (*func)(*this, args[0], args[1]);
-
-  this->total_cycles += cycles;
-  this->PC += next_instruction_relative_pos;
-
-  }
-
-
-
-  std::cout << std::dec << std::endl;
-
-  /* Check for interrupts */
-  if (this->interrupts_enabled)
+  if (!this->halt)
   {
-    // std::cout << "handling interrupts";
-    // this->step_by_step=true;
-    this->handle_interrupts();
+    std::cout << std::endl;
+    std::cout << std::hex << "[0x" << std::setw(4) << this->PC << "]\t";
+    std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)opcode << " ";
+    if (num_args > 0)
+    {
+      std::cout << "args: ";
+      for (int i = 1; i < num_args + 1; ++i)
+      {
+        // Starting from 1 to remove current opcode
+        int offset = prefixed; // 0 or 1;
+        std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)this->m.read(this->PC + i) + offset << " ";
+      }
+    }
+    else
+    {
+      std::cout << " \t";
+    }
+
+    std::cout << "\t" << current_op.label << " ";
+
+    // Run instruction
+    (*func)(*this, args[0], args[1]);
+
+    this->total_cycles += cycles;
+
+    if (increment_pc_next)
+    {
+      this->PC += next_instruction_relative_pos;
+    }
+    else
+    {
+      increment_pc_next = true; // Halt bug
+    }
+
+    /* Check for loops*/
+    uint8_t next_opcode = int(this->m.read(this->PC));
+    if (opcode == next_opcode)
+      this->timeout--;
+    else
+      timeout = 30;
+    
   }
+  else
+  {
+    cycles = 4; // If we stop the clock, timer won't work
+    this->total_cycles += cycles;
+  }
+
+  this->handle_timer(cycles);
+
+  // /* Check for interrupts */
+  // if (skip_interrupts)
+  // {
+  //   skip_interrupts = false;
+  // }
+  // else
+  // {
+
+  if (this->interrupts_enabled || this->halt)
+  {
+    // if (this->skip_interrupts){
+    //   this->skip_interrupts = false;
+    // }
+    this->handle_interrupts();
+    // } else if (this->halt){
+    //   this->halt = false;
+  }
+  // }
 
   return cycles;
 }
@@ -314,7 +441,7 @@ void CPU::log(std::ofstream &log_file)
   // Log used with gameboy-doctor
   // A:00 F:11 B:22 C:33 D:44 E:55 H:66 L:77 SP:8888 PC:9999 PCMEM:AA,BB,CC,DD
   log_file << std::hex;
-  log_file << "A:" << std::setw(2) << std::setfill('0')  << std::uppercase << (int)*this->p_A << " ";
+  log_file << "A:" << std::setw(2) << std::setfill('0') << std::uppercase << (int)*this->p_A << " ";
   log_file << "F:" << std::setw(2) << std::setfill('0') << (int)*this->flags << " ";
   log_file << "B:" << std::setw(2) << std::setfill('0') << (int)*this->p_B << " ";
   log_file << "C:" << std::setw(2) << std::setfill('0') << (int)*this->p_C << " ";
@@ -333,6 +460,10 @@ void CPU::log(std::ofstream &log_file)
 void CPU::print_registers()
 {
   std::cout << std::hex;
+  std::cout << "Interrupts enabled: " << std::setw(1) << (int)(this->interrupts_enabled) << std::endl;
+  std::cout << "IE = 0x" << std::setw(2) << (int)(*this->p_IE) << " (" << std::bitset<8>(*this->p_IE) << ")" << std::endl;
+  std::cout << "IF = 0x" << std::setw(2) << (int)(*this->p_IF) << " (" << std::bitset<8>(*this->p_IF) << ")" << std::endl;
+
   std::cout << "PC = 0x" << std::setw(4) << (int)(this->PC) << std::endl;
   std::cout << "flags = 0x" << (int)(*this->flags) << "; " << std::bitset<8>(*this->flags) << "; boot rom enabled: " << (int)this->m.boot_rom_enabled << std::endl;
   std::cout << "A = 0x" << std::setw(2) << (int)(*this->p_A) << " (" << std::bitset<8>(*this->p_A) << ")" << std::endl;
@@ -347,7 +478,8 @@ void CPU::print_registers()
   std::cout << "HL = 0x" << std::setw(4) << (int)(this->HL) << std::endl;
   std::cout << "[HL] = 0x" << std::setw(4) << (int)(this->m.read(this->HL)) << std::endl;
   std::cout << "SP = 0x" << std::setw(4) << (int)(this->SP) << std::endl;
-  std::cout << "[SP], [SP+1] ... = 0x" << std::setw(2)   << (int)(this->m.read(this->SP)) << " 0x" << (int)(this->m.read(this->SP + 1)) << " 0x" << (int)(this->m.read(this->SP + 2)) << " 0x" << (int)(this->m.read(this->SP + 3)) << std::endl;
-  std::cout <<  std::endl << (int)this->m.read(0xdf7e);
+  std::cout << "[SP], [SP+1] ... = 0x" << std::setw(2) << (int)(this->m.read(this->SP)) << " 0x" << (int)(this->m.read(this->SP + 1)) << " 0x" << (int)(this->m.read(this->SP + 2)) << " 0x" << (int)(this->m.read(this->SP + 3)) << std::endl;
+  std::cout << std::endl
+            << (int)this->m.read(0xdf7e);
   std::cout << std::dec;
 }

@@ -15,10 +15,12 @@ typedef struct
     SDL_Window *window;
 } App;
 
-class View{
+class View
+{
 public:
+    bool debug;
     App app;
-    View(CPU *p_cpu);
+    View(CPU *p_cpu, bool debug_implementation);
     ~View();
     CPU *p_cpu;
     void render_tilemap(CPU &cpu, SDL_Renderer *renderer);

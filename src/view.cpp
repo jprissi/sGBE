@@ -5,14 +5,20 @@
 #include "cpu.hpp"
 #include "view.hpp"
 
-View::View(CPU *p_cpu){
+View::View(CPU *p_cpu, bool debug_implementation){
+    this->debug = debug_implementation;
+    this->p_cpu = p_cpu;
+    if (debug_implementation)
+        return;
     SDL_Window *window = initWindow();
     this->app.renderer = initGraphics(window);
     this->app.window = window;
-    this->p_cpu = p_cpu;
+    
 };
 
 View::~View(){
+    if(this->debug)
+        return;
     SDL_DestroyRenderer(this->app.renderer);
     SDL_DestroyWindow(this->app.window);
     SDL_Quit();

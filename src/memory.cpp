@@ -29,7 +29,8 @@ MemoryController::MemoryController()
   this->rom[0xFF00] = 0xFF; // Joypad input defaults to 0xFF at startup
 }
 
-void MemoryController::DMA_transfer(){
+void MemoryController::DMA_transfer()
+{
   // https://gbdev.io/pandocs/OAM_DMA_Transfer.html
   // 160 machine cycles
   // Lots of subtleties here (should block ppu, ...)
@@ -37,11 +38,10 @@ void MemoryController::DMA_transfer(){
   uint16_t destination = 0xFE00;
   uint8_t size = 0x9f;
 
-  uint8_t* src_address = this->get_pointer(source);
-  uint8_t* dst_address = this->get_pointer(destination);
+  uint8_t *src_address = this->get_pointer(source);
+  uint8_t *dst_address = this->get_pointer(destination);
 
   std::memcpy(dst_address, src_address, size);
-
 }
 
 void MemoryController::write(uint16_t address, uint8_t value)
@@ -65,7 +65,7 @@ void MemoryController::write(uint16_t address, uint8_t value)
     std::cout << "Requesting DMA transfer" << std::endl;
     // exit(1);
     this->DMA_transfer();
-    
+
     // memcpy(value*0x100, 0xFE00, 0xFE9F-0xFE00);
   }
   else
@@ -87,6 +87,12 @@ void MemoryController::write(uint16_t address, uint8_t value)
               << "Disabling boot rom" << std::endl;
     boot_rom_enabled = false;
   }
+
+  // if (address == TAC)
+  // {
+  //   std::cout << "writing to TAC" << std::endl;
+  //   // std::cin.ignore();
+  // }
 };
 
 // void MemoryController::write(uint16_t address, uint16_t value)

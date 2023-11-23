@@ -9,42 +9,45 @@
 uint8_t decode(unsigned char opcode);
 
 void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void HALT(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void DAA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DAA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CCF(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void HALT(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RRCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SCF(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
 struct opcodes_s { // The opcode value is implicit in the array index
@@ -74,7 +77,7 @@ const opcodes_s opcodes[] = {
 	{0x0c, "INC", 1, 4, &INC, "INC C"},
 	{0x0d, "DEC", 1, 4, &DEC, "DEC C"},
 	{0x0e, "LD", 2, 8, &LD, "LD C, d8"},
-	{0x0f, "RRCA", 1, 4, &UNK, "RRCA "},
+	{0x0f, "RRCA", 1, 4, &RRCA, "RRCA "},
 	{0x10, "STOP", 1, 4, &UNK, "STOP 0"},
 	{0x11, "LD", 3, 12, &LD, "LD DE, d16"},
 	{0x12, "LD", 1, 8, &LD, "LD (DE), A"},
@@ -114,7 +117,7 @@ const opcodes_s opcodes[] = {
 	{0x34, "INC", 1, 12, &INC, "INC (HL)"},
 	{0x35, "DEC", 1, 12, &DEC, "DEC (HL)"},
 	{0x36, "LD", 2, 12, &LD, "LD (HL), d8"},
-	{0x37, "SCF", 1, 4, &UNK, "SCF "},
+	{0x37, "SCF", 1, 4, &SCF, "SCF "},
 	{0x38, "JR", 2, 12, &JR, "JR C, r8"},
 	{0x39, "ADD", 1, 8, &ADD, "ADD HL, SP"},
 	{0x3a, "LD", 1, 8, &LD, "LD A, (HL-)"},
@@ -122,7 +125,7 @@ const opcodes_s opcodes[] = {
 	{0x3c, "INC", 1, 4, &INC, "INC A"},
 	{0x3d, "DEC", 1, 4, &DEC, "DEC A"},
 	{0x3e, "LD", 2, 8, &LD, "LD A, d8"},
-	{0x3f, "CCF", 1, 4, &UNK, "CCF "},
+	{0x3f, "CCF", 1, 4, &CCF, "CCF "},
 	{0x40, "LD", 1, 4, &LD, "LD B, B"},
 	{0x41, "LD", 1, 4, &LD, "LD B, C"},
 	{0x42, "LD", 1, 4, &LD, "LD B, D"},
