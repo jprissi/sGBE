@@ -23,7 +23,7 @@ unique_cbprefixed_instructions = get_instructions_list(data['cbprefixed'])
 unique_instructions = list(unique_unprefixed_instructions) + list(unique_cbprefixed_instructions)
 
 implemented = [
-    "NOP",
+    "NOP", "HALT",
     "JP", "JR",
     "LD", "LDH",
     "INC", "DEC",
@@ -36,7 +36,7 @@ implemented = [
     "DI", "EI",
     "CP",
     "RST",
-    "RLA", "RRA", "RLCA",
+    "RLA", "RRA", "RLCA", "DAA", "SLA",
     # CB-prefixed
     "RES", "BIT", "RL", "RR", "SWAP", "SRL",
     "SET"

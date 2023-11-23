@@ -28,6 +28,8 @@ public:
 
     uint8_t *get_pointer(uint16_t address);
     void load_cartridge(std::string &file_path);
+
+    void DMA_transfer();
 };
 
 #endif

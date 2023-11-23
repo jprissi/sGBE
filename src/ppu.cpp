@@ -9,11 +9,11 @@
  * PPU - Pixel Processing Unit
  */
 
-PPU::PPU(CPU *p_cpu, MemoryController *p_m)
+PPU::PPU(CPU *p_cpu, MemoryController *p_m, View *p_view, bool debug_implementation)
 {
     set_memory_controller(p_m);
 
-    this->renderer = renderer;
+    this->renderer = p_view->app.renderer;
     this->cpu = p_cpu;
 
     p_LCDC = p_memory->get_pointer(LCDC);
@@ -26,7 +26,8 @@ PPU::PPU(CPU *p_cpu, MemoryController *p_m)
     p_colPalette = p_memory->get_pointer(COLOR_PALETTE);
     // pf = new PixelFetcher();
 
-    // *p_LY = 90;
+    // *p_LY = 0x94; // For tetris
+    // *p_LY = 0x90; // For Blargg
 }
 
 void PPU::OAM_scan()
@@ -219,7 +220,7 @@ void PPU::switch_to_next_mode()
             if (16.666f - elapsedMS > 0)
             {
                 // Cap to 60 FPS
-                SDL_Delay(floor(16.666f - elapsedMS));
+                // SDL_Delay(floor(16.666f - elapsedMS));
             }
 
             *p_LY = 0;

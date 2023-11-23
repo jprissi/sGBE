@@ -2,11 +2,13 @@
 #define PPU_H
 
 #include <cstdint>
-#include "memory.hpp"
-#include <queue>
+// #include <queue>
 #include <stdio.h>
 #include <SDL2/SDL.h>
+
 #include "cpu.hpp"
+#include "view.hpp"
+#include "memory.hpp"
 
 #define SCANLINES 154
 #define DOT 2 ^ (-22) // Seconds
@@ -60,9 +62,7 @@ private:
     uint8_t *p_SCY;  // Scroll Y
     uint8_t *p_LY;
 
-    bool obj_mode; // Draw sprites?
-
-    // PixelFetcher *pf;
+    bool obj_mode;
 
     void draw_sprite(uint16_t address);
     void draw_foreground_sprites();
@@ -71,12 +71,13 @@ private:
     uint8_t *p_colPalette;
 
     uint8_t cycles_elapsed = 0;
-    MemoryController *p_memory;
 
-public:
+    MemoryController *p_memory;
     CPU *cpu;
     SDL_Renderer *renderer;
-    PPU(CPU *cpu, MemoryController *p_m);
+
+public:
+    PPU(CPU *cpu, MemoryController *p_m, View *p_view, bool debug_implementation);
 
     void set_memory_controller(MemoryController *p_m);
     void OAM_scan();

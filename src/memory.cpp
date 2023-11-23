@@ -1,9 +1,10 @@
-#include <memory.hpp>
+
 #include <stdio.h>
 #include <cstddef>
-#include <cstdint>
+// #include <cstdint>
 #include <stdint.h>
-#include <stdio.h>
+// #include <stdio.h>
+#include <cstring>
 // #include <stdlib.h>
 #include <fstream>
 #include <iomanip>
@@ -11,6 +12,7 @@
 #include <string>
 #include <bitset>
 
+#include "memory.hpp"
 #include "cpu.hpp"
 #include "opcodes.hpp"
 
@@ -27,30 +29,58 @@ MemoryController::MemoryController()
   this->rom[0xFF00] = 0xFF; // Joypad input defaults to 0xFF at startup
 }
 
+void MemoryController::DMA_transfer(){
+  // https://gbdev.io/pandocs/OAM_DMA_Transfer.html
+  // 160 machine cycles
+  // Lots of subtleties here (should block ppu, ...)
+  uint16_t source = this->read(DMA) << 8;
+  uint16_t destination = 0xFE00;
+  uint8_t size = 0x9f;
+
+  uint8_t* src_address = this->get_pointer(source);
+  uint8_t* dst_address = this->get_pointer(destination);
+
+  std::memcpy(dst_address, src_address, size);
+
+}
+
 void MemoryController::write(uint16_t address, uint8_t value)
 {
   // TODO: Check if memory is locked
-  if (address >= 0xE000 and address <= 0xFE00){
-    // Echo of internal RAM
-    address = 0xC000 - 0xE000;
-  }
-  
-  if (address <= 0x8000)
+  if (address >= 0xE000 and address < 0xFE00)
   {
-    std::cout << std::endl << "Writing to ROM :  " << std::hex << (int)address << std::endl;
+    // Echo of internal RAM
+    address += 0xC000 - 0xE000;
+  }
+
+  if (address < 0x8000)
+  {
+    std::cout << std::endl
+              << "Trying to write to ROM :  " << std::hex << (int)address << std::endl;
     // exit(1);
   }
-  else if (address == 0xFF46)
+  else if (address == DMA)
   {
     // Initiating DMA transfer (160 machine cycles: 1.4 lines: 640 dots)
     std::cout << "Requesting DMA transfer" << std::endl;
-    exit(1);
+    // exit(1);
+    this->DMA_transfer();
+    
     // memcpy(value*0x100, 0xFE00, 0xFE9F-0xFE00);
-
-  } else
+  }
+  else
   {
     this->rom[address] = value;
   }
+  if (address == 0x691e)
+  {
+    std::cout << "writing " << std::hex << (int)value << " to 0x691e" << std::endl;
+    std::cin.ignore();
+  }
+  // if (address == 0xdf7e){
+  //   std::cout << "writing " << std::hex << (int)value << " to 0x691e" << std::endl;
+  //   std::cin.ignore();
+  // }
   if (address == 0xFF50)
   {
     std::cout << std::endl
@@ -66,11 +96,24 @@ void MemoryController::write(uint16_t address, uint8_t value)
 
 uint8_t MemoryController::read(uint16_t address)
 {
+  if (address >= 0xE000 and address < 0xFE00)
+  {
+    // Echo of internal RAM
+    address += 0xC000 - 0xE000;
+  }
+
   // 0xFF50 = 1 => boot ROM disabled
   if (boot_rom_enabled && address < 0x0100)
   {
     return this->boot_rom[address];
   }
+
+  if (address == 0xFF00)
+  {
+    // No button pressed
+    return 0xFF;
+  }
+
   return this->rom[address];
 }
 

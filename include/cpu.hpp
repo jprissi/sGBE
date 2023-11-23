@@ -9,8 +9,11 @@
 #define InterruptFlagAddress 0xFF0F
 #define InterruptEnableAddress 0xFFFF
 
+#define DMA 0xFF46
+
 #define INT_VBLANK 1 << 0
-#define INT_JOYPAD 1 << 5
+#define INT_JOYPAD 1 << 4
+#define INT_SERIAL 1 << 3
 
 #define CONST_ZERO_FLAG (1 << 7)
 #define CONST_SUBSTRACT_FLAG (1 << 6)
@@ -22,6 +25,7 @@ class CPU
 
 private:
   int32_t total_cycles = 0;
+
   uint16_t breakpoint = 0xffff;
   void default_init();
   void assert_init();
@@ -30,6 +34,8 @@ private:
   bool interrupts_enabled = false; // IME flag, disabled at start
 
 public:
+  bool halt = false;
+
   uint16_t BC, DE, HL, AF;
   uint8_t *p_F = (uint8_t *)&AF;
   uint8_t *p_A = p_F + 1;
@@ -75,6 +81,7 @@ public:
   void log(std::ofstream &file);
   bool step_by_step = false;
 
+  bool enable_interrupts_next = false; // Or use a counter instead
   bool disable_interrupts_next = false; // Or use a counter instead
   void enable_interrupts();
   void disable_interrupts();
@@ -87,8 +94,10 @@ public:
   uint8_t *p_IE; // Interrupt Enable (0xFFFF)
 
   uint8_t step(uint8_t opcode);
+  void compute_opcode_groupings(uint8_t &opcode, uint8_t &x, uint8_t &y, uint8_t &z);
   void compute_current_opcode_groupings(uint8_t &x, uint8_t &y, uint8_t &z);
   void print_registers();
+
 
   void call(uint8_t arg1, uint8_t arg2);
   void push(uint16_t value);

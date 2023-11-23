@@ -9,40 +9,43 @@
 uint8_t decode(unsigned char opcode);
 
 void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void HALT(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DAA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
 struct opcodes_s { // The opcode value is implicit in the array index
   uint8_t opcode;
@@ -95,7 +98,7 @@ const opcodes_s opcodes[] = {
 	{0x24, "INC", 1, 4, &INC, "INC H"},
 	{0x25, "DEC", 1, 4, &DEC, "DEC H"},
 	{0x26, "LD", 2, 8, &LD, "LD H, d8"},
-	{0x27, "DAA", 1, 4, &UNK, "DAA "},
+	{0x27, "DAA", 1, 4, &DAA, "DAA "},
 	{0x28, "JR", 2, 12, &JR, "JR Z, r8"},
 	{0x29, "ADD", 1, 8, &ADD, "ADD HL, HL"},
 	{0x2a, "LD", 1, 8, &LD, "LD A, (HL+)"},
@@ -174,7 +177,7 @@ const opcodes_s opcodes[] = {
 	{0x73, "LD", 1, 8, &LD, "LD (HL), E"},
 	{0x74, "LD", 1, 8, &LD, "LD (HL), H"},
 	{0x75, "LD", 1, 8, &LD, "LD (HL), L"},
-	{0x76, "HALT", 1, 4, &UNK, "HALT "},
+	{0x76, "HALT", 1, 4, &HALT, "HALT "},
 	{0x77, "LD", 1, 8, &LD, "LD (HL), A"},
 	{0x78, "LD", 1, 4, &LD, "LD A, B"},
 	{0x79, "LD", 1, 4, &LD, "LD A, C"},
@@ -348,14 +351,14 @@ const opcodes_s prefixed_opcodes[] = {
 	  {0x1d, "RR", 2, 8, &RR, "RR L"},
 	  {0x1e, "RR", 2, 16, &RR, "RR (HL)"},
 	  {0x1f, "RR", 2, 8, &RR, "RR A"},
-	  {0x20, "SLA", 2, 8, &UNK, "SLA B"},
-	  {0x21, "SLA", 2, 8, &UNK, "SLA C"},
-	  {0x22, "SLA", 2, 8, &UNK, "SLA D"},
-	  {0x23, "SLA", 2, 8, &UNK, "SLA E"},
-	  {0x24, "SLA", 2, 8, &UNK, "SLA H"},
-	  {0x25, "SLA", 2, 8, &UNK, "SLA L"},
-	  {0x26, "SLA", 2, 16, &UNK, "SLA (HL)"},
-	  {0x27, "SLA", 2, 8, &UNK, "SLA A"},
+	  {0x20, "SLA", 2, 8, &SLA, "SLA B"},
+	  {0x21, "SLA", 2, 8, &SLA, "SLA C"},
+	  {0x22, "SLA", 2, 8, &SLA, "SLA D"},
+	  {0x23, "SLA", 2, 8, &SLA, "SLA E"},
+	  {0x24, "SLA", 2, 8, &SLA, "SLA H"},
+	  {0x25, "SLA", 2, 8, &SLA, "SLA L"},
+	  {0x26, "SLA", 2, 16, &SLA, "SLA (HL)"},
+	  {0x27, "SLA", 2, 8, &SLA, "SLA A"},
 	  {0x28, "SRA", 2, 8, &UNK, "SRA B"},
 	  {0x29, "SRA", 2, 8, &UNK, "SRA C"},
 	  {0x2a, "SRA", 2, 8, &UNK, "SRA D"},
