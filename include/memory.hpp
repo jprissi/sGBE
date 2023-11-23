@@ -11,25 +11,24 @@ class MemoryController
 {
 
 private:
-    // uint8_t get_instruction(uint8_t pc);
-
     uint8_t rom[ROM_SIZE];
     uint8_t boot_rom[8 * 256]; // 256B
-    void copy_file_to_memory(std::string &file_path, bool is_boot = false);
+
+    void write_file_to_memory(std::string &file_path, bool is_boot = false);
+    void DMA_transfer();
 
 public:
     bool boot_rom_enabled = true;
+    // void set_boot_rom_status(bool enabled);
+    // bool get_boot_rom_enabled();
 
     MemoryController();
 
     void write(uint16_t address, uint8_t value);
     uint8_t read(uint16_t address);
-    uint16_t read16(uint16_t address);
-
     uint8_t *get_pointer(uint16_t address);
     void load_cartridge(std::string &file_path);
-
-    void DMA_transfer();
+    // uint16_t read16(uint16_t address);
 };
 
 #endif

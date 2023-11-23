@@ -8,9 +8,9 @@
 
 #define CPU_FREQ 4.194304e6 // Hz
 
-// + IME (flag internal to the CPU)
 #define InterruptFlagAddress 0xFF0F
 #define InterruptEnableAddress 0xFFFF
+// + IME (flag internal to the CPU)
 
 #define DMA 0xFF46
 
@@ -34,18 +34,18 @@ class CPU
 {
 
 private:
-  int32_t total_cycles = 0;
+  uint16_t breakpoint = 0xFFFF;
 
-  uint16_t breakpoint = 0xffff;
-  void default_init();
-  void assert_init();
-
-  void handle_interrupts();
+  void default_register_init();
+  void assert_register_init();
 
   /* Timer (put into its own class?) */
+  int32_t total_cycles = 0;
   uint32_t cycles_count_div;
   uint32_t cycles_count;
   void handle_timer(uint8_t cycles);
+
+  void handle_interrupts();
 
 public:
   
@@ -113,17 +113,18 @@ public:
   uint8_t *p_IF; // Interrupt Flag (0xFF0F)
   uint8_t *p_IE; // Interrupt Enable (0xFFFF)
 
+  uint8_t *get_register(uint8_t i);
   uint8_t step(uint8_t opcode, bool log_to_file = false);
-  void compute_opcode_groupings(uint8_t &opcode, uint8_t &x, uint8_t &y, uint8_t &z);
-  void compute_current_opcode_groupings(uint8_t &x, uint8_t &y, uint8_t &z);
-  void print_registers();
-
   void call(uint8_t arg1, uint8_t arg2);
   void push(uint16_t value);
   uint16_t pop();
-  void panic(); // Custom method to handle our own implementation mistakes
 
-  uint8_t *get_register(uint8_t i);
+  //void compute_opcode_groupings(uint8_t &opcode, uint8_t &x, uint8_t &y, uint8_t &z);
+  void compute_current_opcode_groupings(uint8_t &x, uint8_t &y, uint8_t &z);
+  void print_registers();
+
+
+  void panic(); // Custom method to handle our own implementation mistakes
 };
 
 #endif

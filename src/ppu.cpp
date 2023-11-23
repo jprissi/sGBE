@@ -212,10 +212,10 @@ void PPU::switch_to_next_mode()
             // std::cout << "Cycles: " << std::to_string(cycles) << std::endl; // 4.19MHz
 
             last_frame_timestamp = SDL_GetPerformanceCounter();
-            SDL_SetRenderDrawColor(renderer, 226, 243, 228, SDL_ALPHA_OPAQUE);
+            SDL_SetRenderDrawColor(renderer, 0xE0, 0xF8, 0xD0, SDL_ALPHA_OPAQUE);
             SDL_RenderClear(renderer);
             // SDL_RenderPresent(renderer);
-            SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+            SDL_SetRenderDrawColor(renderer, 0x08, 0x18, 0x20, SDL_ALPHA_OPAQUE);
 
             float elapsed = (SDL_GetPerformanceCounter() - last_frame_timestamp) / (float)SDL_GetPerformanceFrequency();
             float elapsedMS = elapsed * 1000.0f;

@@ -5,7 +5,8 @@
 #include "cpu.hpp"
 #include "view.hpp"
 
-View::View(CPU *p_cpu, bool debug_implementation){
+View::View(CPU *p_cpu, bool debug_implementation)
+{
     this->debug = debug_implementation;
     this->p_cpu = p_cpu;
     if (debug_implementation)
@@ -13,11 +14,11 @@ View::View(CPU *p_cpu, bool debug_implementation){
     SDL_Window *window = initWindow();
     this->app.renderer = initGraphics(window);
     this->app.window = window;
-    
 };
 
-View::~View(){
-    if(this->debug)
+View::~View()
+{
+    if (this->debug)
         return;
     SDL_DestroyRenderer(this->app.renderer);
     SDL_DestroyWindow(this->app.window);
@@ -28,9 +29,9 @@ void View::render_tilemap(CPU &cpu, SDL_Renderer *renderer)
 {
     // https://gbdev.io/pandocs/Tile_Data.html
 
-    SDL_SetRenderDrawColor(renderer, 226, 243, 228, SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, 0xE0, 0xF8, 0xD0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, 0x08, 0x18, 0x20, SDL_ALPHA_OPAQUE);
 
     uint16_t i = 0;
     uint16_t start = 0x8000; // 0x80d0;
@@ -100,11 +101,11 @@ SDL_Renderer *View::initGraphics(SDL_Window *window)
     // #332c50
     // #46878f
     // #94e344
-
     // #e2f3e4
-    SDL_SetRenderDrawColor(renderer, 226, 243, 228, SDL_ALPHA_OPAQUE);
+
+    SDL_SetRenderDrawColor(renderer, 0xE0, 0xF8, 0xD0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(renderer, 0x08, 0x18, 0x20, SDL_ALPHA_OPAQUE);
 
     return renderer;
 }
