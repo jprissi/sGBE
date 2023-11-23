@@ -1,12 +1,36 @@
-# SGBE
+# sGBE
 
-SGBE is a Small GameBoy Emulator. This toy project emulates an 8-bit CPU using C++/SDL.
+sGBE is a Small GameBoy Emulator. 
+This toy project emulates an 8-bit CPU using C++/SDL.
 
-## New approach
+**This is still a work in progress.**
+
+*As of 2023/11/23, it still misses 5 instructions, does not get past tetris title screen.*
+
+<!-- ## New approach
 
 https://github.com/lmmendes/game-boy-opcodes
 
-Start with a .json file of opcodes, do not write manually opcodes
+Start with a .json file of opcodes, do not write manually opcodes -->
+
+## Getting started
+
+Setup build environment :
+```bash
+git clone <repo> && cd sgbe
+mkdir build && cd build
+cmake ..
+```
+
+Build and run the emulator :
+```bash
+make && ./bin/gbe
+```
+
+## Acknowledgements
+
+- **lmmendes** for the [opcodes .json file](https://github.com/lmmendes/game-boy-opcodes)
+- **robert** for the helpful [Gameboy Doctor debugging tool](https://github.com/robert/gameboy-doctor)
 
 ## Resources
 
