@@ -25,10 +25,18 @@
 #define INT_SERIAL 1 << 3
 #define INT_JOYPAD 1 << 4
 
-#define CONST_ZERO_FLAG (1 << 7)
-#define CONST_SUBSTRACT_FLAG (1 << 6)
-#define CONST_HALFCARRY_FLAG (1 << 5)
-#define CONST_CARRY_FLAG (1 << 4)
+// Trying to improve the way flags are currently handled
+#define C 4
+#define H 5
+#define N 6
+#define Z 7
+
+#define ZERO_FLAG (1 << Z)
+#define SUB_FLAG (1 << N)
+#define H_FLAG (1 << H)
+#define CARRY_FLAG (1 << C)
+
+
 
 class CPU
 {
@@ -113,6 +121,7 @@ public:
   uint8_t *p_IF; // Interrupt Flag (0xFF0F)
   uint8_t *p_IE; // Interrupt Enable (0xFFFF)
 
+  void reset_flags();
   uint8_t *get_register(uint8_t i);
   uint8_t step(uint8_t opcode, bool log_to_file = false);
   void call(uint8_t arg1, uint8_t arg2);

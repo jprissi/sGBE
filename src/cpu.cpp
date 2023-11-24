@@ -166,28 +166,15 @@ uint8_t CPU::step(uint8_t opcode, bool log_to_file)
 
   this->handle_timer(cycles);
 
-  // /* Check for interrupts */
-  // if (skip_interrupts)
-  // {
-  //   skip_interrupts = false;
-  // }
-  // else
-  // {
-
   if (this->interrupts_enabled || this->halt)
-  {
-    // if (this->skip_interrupts){
-    //   this->skip_interrupts = false;
-    // }
     this->handle_interrupts();
-    // } else if (this->halt){
-    //   this->halt = false;
-  }
-  // }
 
   return cycles;
 }
 
+void CPU::reset_flags(){
+  *flags = 0x00;
+}
 
 uint8_t *CPU::get_register(uint8_t i)
 {
@@ -427,7 +414,7 @@ void CPU::log(std::ofstream &log_file)
 void CPU::print_registers()
 {
   std::cout << std::hex;
-  std::cout << "Interrupts enabled: " << std::setw(1) << (int)(this->interrupts_enabled) << std::endl;
+  std::cout << std::endl << "Interrupts enabled: " << std::setw(1) << (int)(this->interrupts_enabled) << std::endl;
   std::cout << "IE = 0x" << std::setw(2) << (int)(*this->p_IE) << " (" << std::bitset<8>(*this->p_IE) << ")" << std::endl;
   std::cout << "IF = 0x" << std::setw(2) << (int)(*this->p_IF) << " (" << std::bitset<8>(*this->p_IF) << ")" << std::endl;
 
