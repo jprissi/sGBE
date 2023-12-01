@@ -20,11 +20,12 @@ CPU::CPU(std::string cartridge_path, bool debug_implementation)
   {
     this->default_register_init();
     this->assert_register_init();
-    this->m.write((uint16_t)0xFF44, (uint8_t)0x90);
+    this->m.write(0xFF44, 0x90);
     // Skip boot rom
     this->m.boot_rom_enabled = false;
   }
-
+  // this->default_register_init();
+  this->m.boot_rom_enabled = true; // Quick shortcut for startup
   this->m.load_cartridge(cartridge_path);
 }
 

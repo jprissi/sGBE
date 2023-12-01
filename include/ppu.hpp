@@ -17,7 +17,8 @@
 // https://gbdev.io/pandocs/Rendering.html
 // https://rylev.github.io/DMG-01/public/book/graphics/tile_ram.html
 
-#define LCDC 0xFF40 // LCDC
+#define LCDC 0xFF40 // LCDC 
+#define STAT 0xFF41
 
 #define SCY 0xFF42 // ScrollY
 #define SCX 0xFF43 // ScrollX
@@ -28,6 +29,8 @@
 #define TILEMAP2_START 0x9C00 // -$9BFF
 
 #define TILESET_START 0x8000
+#define TILESET_START_9000 0x9000
+
 #define OAM_START 0xFE00
 
 #define COLOR_PALETTE 0xFF47
@@ -52,6 +55,12 @@ class PPU
     uint8_t durations[4] = {51, 144, 20, 43};
 
 private:
+    void draw_all_sprites();
+
+    uint16_t sprites_adresses[10];
+    uint8_t num_sprites;
+    // const SDL_Point p_points[SCREEN_WIDTH*SCREEN_HEIGHT];
+
     Uint64 last_frame_timestamp;
 
     ppu_mode mode = HORIZONTAL_BLANK;
@@ -62,15 +71,16 @@ private:
     uint8_t *p_SCY;  // Scroll Y
     uint8_t *p_LY;
 
-    bool obj_mode;
+    bool obj_mode, draw_fg, draw_bg_win;
 
-    void draw_sprite(uint16_t address);
+    void draw_sprite(uint16_t address, uint8_t x_pos, uint8_t y_pos);
+    void draw_tile(uint16_t tile_address, uint8_t x_pos, uint8_t y_pos);
     void draw_foreground_sprites();
-    void draw_background();
+    void draw_background_tiles();
 
-    uint8_t *p_colPalette;
+    uint8_t *p_color_palette;
 
-    uint8_t cycles_elapsed = 0;
+    uint16_t cycles_elapsed = 0;
 
     MemoryController *p_memory;
     CPU *cpu;

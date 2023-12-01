@@ -110,27 +110,61 @@ SDL_Renderer *View::initGraphics(SDL_Window *window)
     return renderer;
 }
 
-bool View::handle_SDL_events()
+bool View::handle_SDL_events(CPU &cpu)
 {
 
     SDL_Event event;
     bool quit = false;
-
+    
+    uint8_t input_a = 0x0F;
+    uint8_t input_b = 0x0F;
     while (SDL_PollEvent(&event))
     {
+        
         switch (event.type)
         {
         case SDL_KEYDOWN:
             switch (event.key.keysym.sym)
             {
-            case SDLK_SPACE:
+            case SDLK_AMPERSAND:
                 p_cpu->step_by_step = !p_cpu->step_by_step;
                 break;
             case SDLK_c:
                 p_cpu->step_by_step = false;
+                break;
+            
+            case SDLK_a:
+                input_a &= ~(1 << 0);
+                break;
+            case SDLK_b:
+                input_a &= ~(1 << 1);
+                break;
+            case SDLK_UP:
+                input_b &= ~(1 << 2);
+                break;
+            case SDLK_s: // Select
+                input_a &= ~(1 << 2);
+                break;
+            case SDLK_RIGHT:
+                input_b &= ~(1 << 0);
+                break;
+            case SDLK_LEFT:
+                input_b &= ~(1 << 1);
+                break;
+            case SDLK_DOWN:
+                input_b &= ~(1 << 3);
+                break;
+            case SDLK_SPACE: // start
+                input_a &= ~(1 << 3);
+                break;
             default:
                 break;
             };
+            cpu.m.set_joypad(input_a, input_b);
+            cpu.request_interrupt(INT_JOYPAD);
+            break;
+        case SDL_KEYUP:
+            cpu.m.set_joypad(0x0F, 0x0f);
             break;
         case SDL_QUIT:
             quit = true;

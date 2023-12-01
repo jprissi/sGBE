@@ -12,6 +12,8 @@
 #include "cpu.hpp"
 #include "opcodes.hpp"
 
+#define STAT 0xFF41
+
 // http://www.z80.info/decoding.htm
 
 #define ROM_OFFSET 0x00 // Cartridge starts at address 0
@@ -30,6 +32,8 @@ void MemoryController::DMA_transfer()
   // https://gbdev.io/pandocs/OAM_DMA_Transfer.html
   // 160 machine cycles
   // Lots of subtleties here (should block ppu, ...)
+  std::cout << "DMA transfer!" << std::endl;
+  // std::cin.ignore();
   uint16_t source = this->read(DMA) << 8;
   uint16_t destination = 0xFE00;
   uint8_t size = 0x9f;
@@ -42,10 +46,18 @@ void MemoryController::DMA_transfer()
 
 void MemoryController::write(uint16_t address, uint8_t value)
 {
-  if (address >= 0xE000 and address < 0xFE00)
+  if (address >= 0xE000 && address < 0xFE00)
   {
     // Echo of internal RAM
     address += 0xC000 - 0xE000;
+  }
+  else if (address >= 0xFE00 && address < 0xFE9F)
+  {
+    return write_oam(address, value);
+  }
+  else if (address >= 0x8000 && address < 0x9FFF)
+  {
+    return write_vram(address, value);
   }
   else if (address < 0x8000)
   {
@@ -66,16 +78,34 @@ void MemoryController::write(uint16_t address, uint8_t value)
               << "Disabling boot rom" << std::endl;
     boot_rom_enabled = false;
   }
+  else if (address == STAT)
+  {
+    // std::cout << "reading STAT (0xFF41)" << std::endl;
+  }
 
   this->rom[address] = value;
 };
 
 uint8_t MemoryController::read(uint16_t address)
 {
-  if (address >= 0xE000 and address < 0xFE00)
+  if (address >= 0xE000 && address < 0xFE00)
   {
     // Echo of internal RAM
     address += 0xC000 - 0xE000;
+  }
+  else if (address >= 0x8000 && address < 0x9FFF)
+  {
+    read_vram(address);
+  }
+  else if (address >= 0xFE00 && address < 0xFE9F)
+  {
+    read_oam(address);
+  }
+  else if (address >= 0xFEA0 && address < 0xFEFF)
+  {
+    // Not usable
+    std::cout << address << std::endl;
+    exit(1);
   }
 
   // 0xFF50 = 1 => boot ROM disabled
@@ -84,13 +114,130 @@ uint8_t MemoryController::read(uint16_t address)
     return this->boot_rom[address];
   }
 
-  if (address == 0xFF00)
+  if (address >= 0xFF00 && address < 0xFF80)
   {
-    // No button pressed yet
-    return 0xFF;
+    return read_IO_register(address);
   }
 
   return this->rom[address];
+}
+
+uint8_t MemoryController::read_vram(uint16_t address)
+{
+  // If LCDC disabled, immediate and full access to VRAM, OAM, etc
+  bool ppu_enabled = (rom[LCDC] >> 7) & 1;
+  uint8_t ppu_status = (rom[STAT] & 0x03);
+  if (ppu_status == 3 && ppu_enabled) // VRAM accessible during mode 0-2
+  {
+    return 0xFF; // undefined data
+  }
+  return this->rom[address];
+}
+
+uint8_t MemoryController::read_oam(uint16_t address)
+{
+  // OAM accessible during mode 0-1 else do nothing
+  bool ppu_enabled = (rom[LCDC] >> 7) & 1;
+  uint8_t ppu_status = (rom[STAT] & 0x03);
+  if (ppu_status >= 2 && ppu_enabled)
+  {
+    // Return undefined data
+    return 0xFF;
+  }
+}
+
+void MemoryController::write_vram(uint16_t address, uint8_t value)
+{
+  // VRAM accessible during mode 0-2 else do nothing
+  bool ppu_enabled = (rom[LCDC] >> 7) & 1;
+  uint8_t ppu_status = (rom[STAT] & 0x03);
+  if (ppu_status == 3 && ppu_enabled)
+  {
+    // Do nothing
+    return;
+  }
+  this->rom[address] = value;
+}
+void MemoryController::write_oam(uint16_t address, uint8_t value)
+{
+  // OAM accessible during mode 0-1 else do nothing
+  bool ppu_enabled = (rom[LCDC] >> 7) & 1;
+  uint8_t ppu_status = (rom[STAT] & 0x03);
+  if (ppu_status >= 2 && ppu_enabled)
+  {
+    return;
+  }
+  this->rom[address] = value;
+}
+
+uint8_t MemoryController::read_IO_register(uint16_t address)
+{
+  bool is_address_invalid = (address == 0xFF03 ||
+                             (address >= 0xFF08 && address < 0xFF0F) ||
+                             (address >= 0xFF27 && address < 0xFF30) ||
+                             (address >= 0xFF4C && address < 0xFF50) ||
+                             (address >= 0xFF56 && address < 0xFF68) ||
+                             (address >= 0xFF6C && address < 0xFF70));
+
+  // Handle known cases
+  if (address == 0xFF4D)
+  {
+    return 0xFF;
+  }
+  // Fallback
+  if (is_address_invalid)
+  {
+    std::cout.clear();
+    std::cout << "Unexpected I/O read: " << (int)address << std::endl;
+    exit(1);
+  }
+
+  switch (address)
+  {
+  case 0xFF00:
+    return read_joypad();
+  case 0xFF4D:
+    // Undocumented
+    return 0xFF;
+    // default:
+    //   std::cout.clear();
+    //   std::cout << "Unknown I/O: " << (int)address << std::endl;
+    //   exit(1);
+  }
+
+  return this->rom[address];
+}
+
+uint8_t MemoryController::read_joypad()
+{
+  // std::cout.clear();
+  // std::cout << "===\n reading joypad" << std::endl;
+  uint8_t value = (rom[0xFF00] & 0xF0);
+  // std::cout << (int)value << std::endl;
+  // std::cout << std::bitset<8>(joypad_registers.input_a) << std::endl;
+  // std::cout << std::bitset<8>(joypad_registers.input_b) << std::endl;
+  if (!((value >> 5) & 1))
+  {
+    value |= (joypad_registers.input_a & 0x0F);
+  }
+  else if (!((value >> 6) & 1))
+  {
+    value |= (joypad_registers.input_b & 0x0F);
+  }
+  else
+  {
+    value |= 0x0F;
+  }
+  // std::cout << "value: " << std::bitset<8>(value) << std::endl;
+  // std::cin.ignore();
+  // std::cout.setstate(std::ios_base::failbit);
+  return value;
+}
+
+void MemoryController::set_joypad(uint8_t a, uint8_t b)
+{
+  joypad_registers.input_a = a;
+  joypad_registers.input_b = b;
 }
 
 // uint16_t MemoryController::read16(uint16_t address)

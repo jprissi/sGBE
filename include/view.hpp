@@ -26,7 +26,7 @@ public:
     void render_tilemap(CPU &cpu, SDL_Renderer *renderer);
     SDL_Window *initWindow();
     SDL_Renderer *initGraphics(SDL_Window *window);
-    bool handle_SDL_events();
+    bool handle_SDL_events(CPU &cpu);
 };
 
 #endif

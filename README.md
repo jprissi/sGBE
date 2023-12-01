@@ -1,17 +1,13 @@
 # sGBE
 
 sGBE is a Small GameBoy Emulator. 
-This toy project emulates an 8-bit CPU using C++/SDL.
+This project emulates an 8-bit CPU using C++/SDL.
 
 **This is still a work in progress.**
 
-*As of 2023/11/23, it still misses 5 instructions, does not get past tetris title screen.*
+*As of 2023/12/01, it still misses 5 instructions and does not display object sprites*
 
-<!-- ## New approach
-
-https://github.com/lmmendes/game-boy-opcodes
-
-Start with a .json file of opcodes, do not write manually opcodes -->
+![nintendo startup logo](./nintendo.png) ![tetris title screen](./tetris.png)
 
 ## Getting started
 
@@ -37,7 +33,8 @@ make && ./bin/gbe
 Compare implementation with disassembled source :
 https://github.com/osnr/tetris/blob/master/tetris.asm
 
-PPU implementation detailed write-up:
+PPU implementation detailed write-ups:
 https://blog.tigris.fr/2019/09/15/writing-an-emulator-the-first-pixel/
+https://hacktix.github.io/GBEDG/ppu/
 
 https://robertovaccari.com/blog/2020_09_26_gameboy/

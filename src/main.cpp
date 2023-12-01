@@ -19,6 +19,8 @@
 // bool debug_implementation = true;
 bool debug_implementation = false;
 
+// std::string cartridge_path = "../tools/gb-test-roms/cpu_instrs/cpu_instrs.gb";
+// std::string cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/01-special.gb";
 std::string cartridge_path = "../rom/tetris.gb";
 std::string serial_output;
 
@@ -36,12 +38,12 @@ void read_serial(CPU *p_cpu)
 int main(int argc, char **argv)
 {
 
-    bool log_to_tty = false;
+    bool log_to_tty = true;
     bool log_to_file = false;
 
     if (!log_to_tty)
         std::cout.setstate(std::ios_base::failbit); // Don't log to console
-        
+
     if (argc > 1)
     {
         debug_implementation = true;
@@ -62,10 +64,11 @@ int main(int argc, char **argv)
 
     while (!quit && i <= MAX_INSTRUCTIONS)
     {
-        quit = p_view->handle_SDL_events();
+        quit = p_view->handle_SDL_events(*p_cpu);
 
         if (p_cpu->step_by_step)
         {
+            std::cout.clear();
             p_cpu->print_registers();
             std::cin.ignore();
             // cpu->step_by_step = false;

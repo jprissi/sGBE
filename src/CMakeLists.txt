@@ -15,16 +15,13 @@ add_custom_command(
 )
 
 # Add a custom target that depends on the generated header file
-add_custom_target(GenerateOpcodesHeader DEPENDS ${GENERATED_HEADER_FILE})
+# add_custom_target(GenerateOpcodesHeader DEPENDS ${GENERATED_HEADER_FILE})
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 file( GLOB SOURCES *.cpp )
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra" )
-# set(CMAKE_CXX_FLAGS "-pg" )
-# set(CMAKE_CXX_FLAGS "-g" )
-set(CMAKE_CXX_FLAGS "-O3" )
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -O3" ) # -pedantic
 
 set( MAIN_SOURCES main.cpp )
 set( MAIN_EXE_NAME gbe )
