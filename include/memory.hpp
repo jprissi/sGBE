@@ -26,8 +26,8 @@ private:
     void write_file_to_memory(std::string &file_path, bool is_boot = false);
     uint8_t read_IO_register(uint16_t address);
 
-    
-    uint8_t read_vram(uint16_t address);
+
+    uint8_t read_vram(uint16_t address, bool is_ppu);
     uint8_t read_oam(uint16_t address);
     void write_vram(uint16_t address, uint8_t value);
     void write_oam(uint16_t address, uint8_t value);
@@ -42,7 +42,7 @@ public:
     MemoryController();
 
     void write(uint16_t address, uint8_t value);
-    uint8_t read(uint16_t address);
+    uint8_t read(uint16_t address, bool is_ppu=false);
     uint8_t *get_pointer(uint16_t address);
     void load_cartridge(std::string &file_path);
 

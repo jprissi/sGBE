@@ -5,9 +5,9 @@ This project emulates an 8-bit CPU using C++/SDL.
 
 **This is still a work in progress.**
 
-*As of 2023/12/01, it still misses 5 instructions and does not display object sprites*
+*As of 2023/12/01, it misses 5 instructions and still has some issues when playing Tetris. It might not work with other games*
 
-![nintendo startup logo](./nintendo.png) ![tetris title screen](./tetris.png)
+![nintendo startup logo](./nintendo.png) ![tetris title screen](./tetris.png) ![tetris](./tetris2.png)
 
 ## Getting started
 
@@ -22,6 +22,13 @@ Build and run the emulator :
 ```bash
 make && ./bin/gbe
 ```
+
+## Missing features
+
+- Bank Switching
+- Sound
+- CGB mode
+- ...
 
 ## Acknowledgements
 

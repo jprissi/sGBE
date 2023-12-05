@@ -24,8 +24,8 @@ CPU::CPU(std::string cartridge_path, bool debug_implementation)
     // Skip boot rom
     this->m.boot_rom_enabled = false;
   }
-  // this->default_register_init();
-  this->m.boot_rom_enabled = true; // Quick shortcut for startup
+  this->default_register_init();
+  this->m.boot_rom_enabled = false; // Quick shortcut for startup
   this->m.load_cartridge(cartridge_path);
 }
 

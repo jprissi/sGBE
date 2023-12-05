@@ -33,7 +33,8 @@
 
 #define OAM_START 0xFE00
 
-#define COLOR_PALETTE 0xFF47
+#define COLOR_PALETTE_BG 0xFF47
+#define COLOR_PALETTE_OBJ 0xFF48
 
 enum ppu_mode
 {
@@ -56,6 +57,7 @@ class PPU
 
 private:
     void draw_all_sprites();
+    void set_color(uint8_t color);
 
     uint16_t sprites_adresses[10];
     uint8_t num_sprites;
@@ -78,13 +80,21 @@ private:
     void draw_foreground_sprites();
     void draw_background_tiles();
 
-    uint8_t *p_color_palette;
+    uint8_t *p_color_palette_bg;
+    uint8_t *p_color_palette_obj;
 
     uint16_t cycles_elapsed = 0;
 
     MemoryController *p_memory;
     CPU *cpu;
     SDL_Renderer *renderer;
+
+    SDL_Color white = {0xe0, 0xf8, 0xd0};
+    SDL_Color light_gray = {0x88, 0xC0, 0x70};
+    SDL_Color dark_gray = {0x34, 0x68, 0x56};
+    SDL_Color black = {0x08, 0x18, 0x20};
+
+    SDL_Color palette[4] = {white, light_gray, dark_gray, black};
 
 public:
     PPU(CPU *cpu, MemoryController *p_m, View *p_view, bool debug_implementation);
@@ -94,7 +104,7 @@ public:
     void send_pixels();
     void wait_h();
     void wait_v();
-    void switch_to_next_mode();
+    void switch_mode();
 
     void update(uint8_t cpu_cycles);
 };

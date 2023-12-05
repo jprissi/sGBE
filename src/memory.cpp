@@ -36,12 +36,14 @@ void MemoryController::DMA_transfer()
   // std::cin.ignore();
   uint16_t source = this->read(DMA) << 8;
   uint16_t destination = 0xFE00;
-  uint8_t size = 0x9f;
+  std::size_t size = 0x9f;
 
   uint8_t *src_address = this->get_pointer(source);
+  std::cout << std::hex << "source: " << (int)source << std::endl;
   uint8_t *dst_address = this->get_pointer(destination);
 
   std::memcpy(dst_address, src_address, size);
+  // std::cin.ignore();
 }
 
 void MemoryController::write(uint16_t address, uint8_t value)
@@ -69,6 +71,7 @@ void MemoryController::write(uint16_t address, uint8_t value)
   {
     // Initiating DMA transfer (160 machine cycles: 1.4 lines: 640 dots)
     std::cout << "Requesting DMA transfer" << std::endl;
+    this->rom[address] = value; // Write DMA address before calling transfer
     this->DMA_transfer();
     return;
   }
@@ -86,7 +89,7 @@ void MemoryController::write(uint16_t address, uint8_t value)
   this->rom[address] = value;
 };
 
-uint8_t MemoryController::read(uint16_t address)
+uint8_t MemoryController::read(uint16_t address, bool is_ppu)
 {
   if (address >= 0xE000 && address < 0xFE00)
   {
@@ -95,7 +98,7 @@ uint8_t MemoryController::read(uint16_t address)
   }
   else if (address >= 0x8000 && address < 0x9FFF)
   {
-    read_vram(address);
+    read_vram(address, is_ppu);
   }
   else if (address >= 0xFE00 && address < 0xFE9F)
   {
@@ -122,12 +125,12 @@ uint8_t MemoryController::read(uint16_t address)
   return this->rom[address];
 }
 
-uint8_t MemoryController::read_vram(uint16_t address)
+uint8_t MemoryController::read_vram(uint16_t address, bool is_ppu)
 {
   // If LCDC disabled, immediate and full access to VRAM, OAM, etc
   bool ppu_enabled = (rom[LCDC] >> 7) & 1;
-  uint8_t ppu_status = (rom[STAT] & 0x03);
-  if (ppu_status == 3 && ppu_enabled) // VRAM accessible during mode 0-2
+  uint8_t ppu_status = (rom[STAT] & 3);
+  if (ppu_status == 3 && ppu_enabled && !is_ppu) // VRAM accessible during mode 0-2
   {
     return 0xFF; // undefined data
   }

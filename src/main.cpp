@@ -24,6 +24,9 @@ bool debug_implementation = false;
 std::string cartridge_path = "../rom/tetris.gb";
 std::string serial_output;
 
+bool log_to_tty = false;
+bool log_to_file = false;
+
 void read_serial(CPU *p_cpu)
 {
     // MemoryController mem = p_cpu->m;
@@ -38,8 +41,8 @@ void read_serial(CPU *p_cpu)
 int main(int argc, char **argv)
 {
 
-    bool log_to_tty = true;
-    bool log_to_file = false;
+    // log_to_tty = true;
+    // log_to_file = true; // For use with gameboy-doctor
 
     if (!log_to_tty)
         std::cout.setstate(std::ios_base::failbit); // Don't log to console
@@ -62,7 +65,7 @@ int main(int argc, char **argv)
     int i = 0;
     bool quit = false;
 
-    while (!quit && i <= MAX_INSTRUCTIONS)
+    while (!quit) //&& i <= MAX_INSTRUCTIONS)
     {
         quit = p_view->handle_SDL_events(*p_cpu);
 
@@ -80,11 +83,11 @@ int main(int argc, char **argv)
         /* Deal with serial transfer (Blargg's test rom)*/
         read_serial(p_cpu);
 
-        if (p_cpu->timeout == 0)
-        {
-            std::cout << "Reached loop" << std::endl;
-            quit = true;
-        }
+        // if (p_cpu->timeout == 0)
+        // {
+        //     std::cout << "Reached loop" << std::endl;
+        //     quit = true;
+        // }
 
         if (!debug_implementation)
         {
