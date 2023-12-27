@@ -55,14 +55,14 @@ for idx, path in enumerate(cartridge_path):
     #     print(output.decode())
     #     break
 
-# cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/01-special.gb"; // OK!
-# cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/02-interrupts.gb"; // Need timer interrupt
+# 01 // OK!
+# 02 // OK!
 # 03 // OK
-# // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/04-op r,imm.gb"; // OK!
-# // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/05-op rp.gb"; // OK!
-# // cartridge_path = "../tools/gb-test-roms/cpu_instrs/individual/06-ld r,r.gb"; // OK!
+# 04 // OK!
+# 05 // OK!
+# 06 // OK!
 # 07 - missing banks // OK
 # 08 // OK
-# 09 // Missing SCF
+# 09 // TODO : Missing SCF
 # 10 // OK but need to run longer?
-# 11 // Missing LD A, (bc)
+# 11 // TODO: Missing LD A, (bc)

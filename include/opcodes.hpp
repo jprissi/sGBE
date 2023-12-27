@@ -9,46 +9,49 @@
     uint8_t decode(unsigned char opcode);
 
     void UNK(CPU &cpu, uint8_t arg1, uint8_t arg2);
-    void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+    void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void DI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RRCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void CCF(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void HALT(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SCF(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RRCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void DAA(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void RST(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void HALT(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SCF(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void JR(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void LD(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void NOP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void DAA(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void POP(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void JP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void INC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void EI(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void AND(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void OR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void CP(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void PUSH(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RRC(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void SET(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void RL(CPU &cpu, uint8_t arg1, uint8_t arg2);
-void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2);
 void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void SRA(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RLC(CPU &cpu, uint8_t arg1, uint8_t arg2);
+void RES(CPU &cpu, uint8_t arg1, uint8_t arg2);
 
     struct opcodes_s { // The opcode value is implicit in the array index
     uint8_t opcode;
@@ -322,22 +325,22 @@ void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
     };
 
     const opcodes_s prefixed_opcodes[] = {
-    	{0x00, "RLC", 2, 8, &UNK, "RLC B"},
-	{0x01, "RLC", 2, 8, &UNK, "RLC C"},
-	{0x02, "RLC", 2, 8, &UNK, "RLC D"},
-	{0x03, "RLC", 2, 8, &UNK, "RLC E"},
-	{0x04, "RLC", 2, 8, &UNK, "RLC H"},
-	{0x05, "RLC", 2, 8, &UNK, "RLC L"},
-	{0x06, "RLC", 2, 16, &UNK, "RLC (HL)"},
-	{0x07, "RLC", 2, 8, &UNK, "RLC A"},
-	{0x08, "RRC", 2, 8, &UNK, "RRC B"},
-	{0x09, "RRC", 2, 8, &UNK, "RRC C"},
-	{0x0a, "RRC", 2, 8, &UNK, "RRC D"},
-	{0x0b, "RRC", 2, 8, &UNK, "RRC E"},
-	{0x0c, "RRC", 2, 8, &UNK, "RRC H"},
-	{0x0d, "RRC", 2, 8, &UNK, "RRC L"},
-	{0x0e, "RRC", 2, 16, &UNK, "RRC (HL)"},
-	{0x0f, "RRC", 2, 8, &UNK, "RRC A"},
+    	{0x00, "RLC", 2, 8, &RLC, "RLC B"},
+	{0x01, "RLC", 2, 8, &RLC, "RLC C"},
+	{0x02, "RLC", 2, 8, &RLC, "RLC D"},
+	{0x03, "RLC", 2, 8, &RLC, "RLC E"},
+	{0x04, "RLC", 2, 8, &RLC, "RLC H"},
+	{0x05, "RLC", 2, 8, &RLC, "RLC L"},
+	{0x06, "RLC", 2, 16, &RLC, "RLC (HL)"},
+	{0x07, "RLC", 2, 8, &RLC, "RLC A"},
+	{0x08, "RRC", 2, 8, &RRC, "RRC B"},
+	{0x09, "RRC", 2, 8, &RRC, "RRC C"},
+	{0x0a, "RRC", 2, 8, &RRC, "RRC D"},
+	{0x0b, "RRC", 2, 8, &RRC, "RRC E"},
+	{0x0c, "RRC", 2, 8, &RRC, "RRC H"},
+	{0x0d, "RRC", 2, 8, &RRC, "RRC L"},
+	{0x0e, "RRC", 2, 16, &RRC, "RRC (HL)"},
+	{0x0f, "RRC", 2, 8, &RRC, "RRC A"},
 	{0x10, "RL", 2, 8, &RL, "RL B"},
 	{0x11, "RL", 2, 8, &RL, "RL C"},
 	{0x12, "RL", 2, 8, &RL, "RL D"},
@@ -362,14 +365,14 @@ void RR(CPU &cpu, uint8_t arg1, uint8_t arg2);
 	{0x25, "SLA", 2, 8, &SLA, "SLA L"},
 	{0x26, "SLA", 2, 16, &SLA, "SLA (HL)"},
 	{0x27, "SLA", 2, 8, &SLA, "SLA A"},
-	{0x28, "SRA", 2, 8, &UNK, "SRA B"},
-	{0x29, "SRA", 2, 8, &UNK, "SRA C"},
-	{0x2a, "SRA", 2, 8, &UNK, "SRA D"},
-	{0x2b, "SRA", 2, 8, &UNK, "SRA E"},
-	{0x2c, "SRA", 2, 8, &UNK, "SRA H"},
-	{0x2d, "SRA", 2, 8, &UNK, "SRA L"},
-	{0x2e, "SRA", 2, 16, &UNK, "SRA (HL)"},
-	{0x2f, "SRA", 2, 8, &UNK, "SRA A"},
+	{0x28, "SRA", 2, 8, &SRA, "SRA B"},
+	{0x29, "SRA", 2, 8, &SRA, "SRA C"},
+	{0x2a, "SRA", 2, 8, &SRA, "SRA D"},
+	{0x2b, "SRA", 2, 8, &SRA, "SRA E"},
+	{0x2c, "SRA", 2, 8, &SRA, "SRA H"},
+	{0x2d, "SRA", 2, 8, &SRA, "SRA L"},
+	{0x2e, "SRA", 2, 16, &SRA, "SRA (HL)"},
+	{0x2f, "SRA", 2, 8, &SRA, "SRA A"},
 	{0x30, "SWAP", 2, 8, &SWAP, "SWAP B"},
 	{0x31, "SWAP", 2, 8, &SWAP, "SWAP C"},
 	{0x32, "SWAP", 2, 8, &SWAP, "SWAP D"},

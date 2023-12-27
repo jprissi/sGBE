@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <bitset>
+#include <iomanip>
 
 void PPU::set_color(uint8_t color_id)
 {
@@ -147,9 +148,9 @@ void PPU::wait_v()
         float elapsed = (SDL_GetPerformanceCounter() - timestamp_previous_frame) / (float)SDL_GetPerformanceFrequency();
         float elapsedMS = elapsed * 1000.0f;
 
-        std::cout.clear();
-        std::cout << "Current FPS: " << std::to_string(1.0f / (elapsed)) << std::endl;
-        std::cout.setstate(std::ios_base::failbit);
+        // std::cout.clear();
+        // std::cout << "Current FPS: " << std::to_string(1.0f / (elapsed)) << std::endl;
+        // std::cout.setstate(std::ios_base::failbit);
 
         if (16.666f - elapsedMS > 0)
         {
@@ -192,26 +193,20 @@ void PPU::draw_background_tiles()
         uint8_t x_pos = tile_x*8 - scroll_x + 8;
         uint8_t y_pos = current_scanline - scroll_y + 16;
 
+        // if (current_scanline % 8 == 0){
+        // std::cout.clear();
+        // std::cout << std::setw(2) << std::hex << (int)tile_id << " ";
+        // // std::cout << "(" << (int)x_pos << "; " << (int)y_pos << std::hex << ") : drawing tile " << (int)tile_id << " at address " << (int)tile_address << std::endl;
+        // std::cout.setstate(std::ios_base::failbit);
+        // }
         draw_tile(tile_address, x_pos, y_pos);
         
-        // uint8_t tile_data_lsb = p_memory->read(tile_address);
-        // uint8_t tile_data_msb = p_memory->read(tile_address + 1);
-
-        // for (int tile_offset_x = 0; tile_offset_x < 8; ++tile_offset_x)
-        // {
-        //     uint8_t x = tile_x * 8 + tile_offset_x - scroll_x;
-        //     uint8_t y = current_scanline - scroll_y;
-
-        //     uint8_t pixel_value_id = ((tile_data_lsb >> (7 - tile_offset_x)) & 1) | ((tile_data_msb >> (7 - tile_offset_x)) & 1) << 1;
-        //     uint8_t color = (*p_color_palette_bg >> 2 * pixel_value_id) & 3;
-
-        //     if (color != 0)
-        //     {
-        //         set_color(color);
-        //         SDL_RenderDrawPoint(renderer, x, y);
-        //     }
-        // }
     }
+    // if (current_scanline % 8 == 0){
+    // std::cout.clear();
+    // std::cout << std::endl;
+    // std::cout.setstate(std::ios_base::failbit);
+    // }
 }
 
 void PPU::draw_foreground_sprites()

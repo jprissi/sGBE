@@ -12,7 +12,7 @@
 #include "opcodes.hpp"
 #include "view.hpp"
 
-#define MAX_INSTRUCTIONS 1e7
+#define MAX_INSTRUCTIONS 1e8
 bool debug_implementation = false;
 
 std::string cartridge_path = "../rom/tetris.gb";
@@ -36,9 +36,9 @@ void read_serial(CPU *p_cpu)
 
 int main(int argc, char **argv)
 {
-    // log_to_tty = true;
-    // log_to_file = true; // For use with gameboy-doctor
-    // log_to_serial = true
+    log_to_tty = true;
+    log_to_file = true; // For use with gameboy-doctor
+    log_to_serial = true;
 
     if (!log_to_tty)
         std::cout.setstate(std::ios_base::failbit); // Don't log to console
@@ -63,15 +63,18 @@ int main(int argc, char **argv)
     bool quit = false;
     while (!quit)
     {
+        std::cout << std::endl << std::dec << std::setw(7) << (int)i << " ";
+        
         quit = p_view->handle_SDL_events(*p_cpu);
 
         if (early_stop && i >= MAX_INSTRUCTIONS)
             quit = true;
 
-        if (p_cpu->step_by_step)
+        if (p_cpu->step_by_step and i>= 3063820)
         {
             p_cpu->print_registers();
-            // cpu->step_by_step = false;
+            std::cin.ignore();
+            // p_cpu->step_by_step = false;
         }
 
         if (!p_cpu->halt && log_to_file)
@@ -85,11 +88,11 @@ int main(int argc, char **argv)
         if (log_to_serial)
             read_serial(p_cpu);
 
-        // if (p_cpu->timeout == 0)
-        // {
-        //     std::cout << "Reached loop" << std::endl;
-        //     quit = true;
-        // }
+        if (p_cpu->timeout == 0)
+        {
+            std::cout << "Reached loop" << std::endl;
+            quit = true;
+        }
 
         if (!debug_implementation)
             p_ppu->update(cycles);

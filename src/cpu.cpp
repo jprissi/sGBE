@@ -47,8 +47,7 @@ uint8_t CPU::execute(uint8_t opcode, bool log_to_file)
 
   if (sizeof(opcodes) / sizeof(*opcodes) - 1 < opcode)
   {
-    std::cout << std::endl
-              << "Opcode " << std::hex << (int)opcode << " not in opcodes!" << std::endl;
+    std::cout << "Opcode " << std::hex << (int)opcode << " not in opcodes!" << std::endl;
     this->panic();
   }
 
@@ -60,8 +59,8 @@ uint8_t CPU::execute(uint8_t opcode, bool log_to_file)
     prefixed = true;
     prefix = opcode; // should be CB
     opcode = m.read(PC + 1);
+    
     current_opcode_hex = opcode;
-
     current_opcode = prefixed_opcodes[opcode];
   }
 
@@ -119,7 +118,7 @@ uint8_t CPU::execute(uint8_t opcode, bool log_to_file)
 
   if (!this->halt)
   {
-    std::cout << std::endl;
+    // std::cout << std::endl;
     std::cout << std::hex << "[0x" << std::setw(4) << this->PC << "]\t";
     std::cout << std::setw(2) << std::hex << std::setfill('0') << (int)opcode << " ";
     if (num_args > 0)

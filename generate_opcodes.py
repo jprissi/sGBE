@@ -103,7 +103,7 @@ implemented = [
     "RLA", "RRA", "RRCA", "RLCA", "DAA", "SLA", 
     "SCF", "CCF",
     # CB-prefixed
-    "RES", "BIT", "RL", "RR", "SWAP", "SRL",
+    "RES", "BIT", "RL", "RR", "SWAP", "SRL", "RLC", "RRC", "SRA",
     "SET"
 ]
 

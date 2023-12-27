@@ -46,14 +46,18 @@ void LD8(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     if (y == 6) // LD (HL), r[z]
     {
-        cpu.m.write(cpu.HL, *cpu.registers[z]);
+        cpu.m.write(cpu.HL, *cpu.get_register(z));
         return;
     }
-    *cpu.registers[y] = *cpu.get_register(z);
+    *cpu.get_register(y) = *cpu.get_register(z);
 }
 
 void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
+    // if (cpu.current_opcode_hex == 0x02) {
+    //     cpu.step_by_step = true;
+    // }
+    
     cpu.compute_current_opcode_groupings(x, y, z);
 
     if (x == 1) // LD r[y], r[z] - 8 bit loading
@@ -77,6 +81,10 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
             *cpu.get_register(y) = arg1;
             return;
         }
+
+        // std::cout << " UNK (LD)";
+        // UNK(cpu, arg1, arg2);
+
     }
 
     uint16_t address;
@@ -84,8 +92,8 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
     switch (opcode)
     {
-    case 0x02:
-        cpu.BC = *cpu.p_A;
+    case 0x02: // LD (BC), A
+        cpu.m.write(cpu.BC, *cpu.p_A);
         break;
     case 0x08: // LD (nn), SP
         address = arg1 | arg2 << 8;
@@ -146,9 +154,12 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
         cpu.SP = cpu.HL;
         break;
     case 0xfa: // LD A, (nn)
+        // cpu.step_by_step = true;
         address = arg2 << 8 | arg1;
         // cpu.step_by_step = true;
+        // std::cout << address << std::endl;
         *cpu.p_A = cpu.m.read(address);
+        
         break;
     default:
         std::cout << " UNK (LD)";
@@ -345,23 +356,24 @@ void INC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
-    uint8_t p = (y & 6) >> 1;
 
     if (z == 4)
     {
-        *cpu.flags &= ~SUB_FLAG;
-        // 8 bit inc
-
+        // 8 bit-inc
+        // cpu.reset_flags();
         *cpu.flags &= ~H_FLAG;
-        if ((*cpu.registers[y] & 0x0f) + 1 > 0x0f)
+        *cpu.flags &= ~SUB_FLAG;
+        *cpu.flags &= ~ZERO_FLAG;
+
+        if ((*cpu.get_register(y) & 0x0f) + 1 > 0x0f)
         {
             *cpu.flags |= H_FLAG;
         }
 
-        (*cpu.registers[y])++;
+        (*cpu.get_register(y))++;
+        // (*cpu.registers[y])++;
 
-        *cpu.flags &= ~ZERO_FLAG;
-        if (*cpu.registers[y] == 0)
+        if (*cpu.get_register(y) == 0)
         {
             *cpu.flags |= ZERO_FLAG;
         }
@@ -370,8 +382,9 @@ void INC(CPU &cpu, uint8_t arg1, uint8_t arg2)
     }
     else if (z == 3)
     {
+        // 16 bit inc
         // No effect on flags according to manual
-
+        uint8_t p = (y & 6) >> 1;
         (*cpu.registers16[p])++;
 
         return;
@@ -540,7 +553,7 @@ void AND(CPU &cpu, uint8_t arg1, uint8_t arg2)
     }
     else
     {
-        value = *cpu.registers[z];
+        value = *cpu.get_register(z);
     }
 
     (*cpu.p_A) &= value;
@@ -636,7 +649,7 @@ void CP(CPU &cpu, uint8_t arg1, uint8_t arg2)
     else
     {
         cpu.compute_current_opcode_groupings(x, y, z);
-        value = *cpu.registers[z];
+        value = *cpu.get_register(z);
     }
 
     std::cout << "\t => " << (int)value << " <=? " << std::hex << (int)(*cpu.p_A);
@@ -663,6 +676,10 @@ void CP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     *cpu.p_A = ~*cpu.p_A;
+    
+    cpu.reset_flags();
+    *cpu.flags |= SUB_FLAG;
+    *cpu.flags |= H_FLAG;
 }
 
 void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2)
@@ -789,7 +806,7 @@ void RES(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     cpu.compute_current_opcode_groupings(x, y, z);
 
-    uint8_t *p_reg = cpu.registers[z];
+    uint8_t *p_reg = cpu.get_register(z);
 
     // Reset bit y in register z
     *p_reg &= ~(1 << y);
@@ -803,7 +820,7 @@ void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2)
     *cpu.flags &= ~SUB_FLAG;
     *cpu.flags |= H_FLAG;
 
-    if (!(*cpu.registers[z] & (1 << y)))
+    if (!(*cpu.get_register(z) & (1 << y)))
     {
         *cpu.flags |= ZERO_FLAG;
     }
@@ -812,14 +829,16 @@ void BIT(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void rotate_left(CPU &cpu, uint8_t *p_reg)
 {
     // Set carry flag to the leftmost bit value
-    cpu.reset_flags();
+    uint8_t carry = (*cpu.flags & CARRY_FLAG) >> 4;
 
+    cpu.reset_flags();
     if (*p_reg & (1 << 7))
     {
         *cpu.flags |= CARRY_FLAG;
     }
 
     *p_reg <<= 1;
+    *p_reg |= carry;
 
     if (*p_reg == 0)
     {
@@ -851,7 +870,15 @@ void rotate_right(CPU &cpu, uint8_t *p_reg)
 void RL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     cpu.compute_current_opcode_groupings(x, y, z);
-    rotate_left(cpu, cpu.registers[z]);
+    // std::cout << std::endl << "z=" << (int)z << std::endl;
+    // cpu.print_registers();
+    // // std::cout << "HL= " << (int)*cpu.get_register(6) << std::endl;
+    // std::cout << "(HL)= " << std::bitset<16>((int)*cpu.get_register(6)) << std::endl;
+    
+    rotate_left(cpu, cpu.get_register(z));
+    // std::cout << "(HL)= " << std::bitset<16>((int)*cpu.get_register(6)) << std::endl;
+    // cpu.print_registers();
+    // std::cin.ignore();
 }
 
 void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
@@ -859,9 +886,7 @@ void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
     uint8_t carry = (*cpu.flags & CARRY_FLAG) >> 4;
     uint8_t *p_reg = cpu.registers[7]; // A
     // Set carry flag to the leftmost bit value
-    *cpu.flags &= ~CARRY_FLAG;
-    *cpu.flags &= ~SUB_FLAG;
-    *cpu.flags &= ~H_FLAG;
+    cpu.reset_flags();
 
     if (*p_reg & (1 << 7))
     {
@@ -878,21 +903,34 @@ void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t value = *cpu.p_A;
+
+    cpu.reset_flags();
     *cpu.flags |= (value >> 7) << 4;
     *cpu.p_A = value << 1 | value >> 7;
 
-    *cpu.flags &= ~SUB_FLAG;
-    *cpu.flags &= ~H_FLAG;
-    *cpu.flags &= ~ZERO_FLAG;
-
     if (*cpu.p_A == 0)
+        *cpu.flags |= ZERO_FLAG;
+}
+
+void RLC(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    cpu.compute_current_opcode_groupings(x, y, z);
+    uint8_t *p_reg = cpu.get_register(z);
+
+    uint8_t value = *p_reg;
+
+    cpu.reset_flags();
+    *cpu.flags |= (value >> 7) << 4;
+    *p_reg = value << 1 | value >> 7;
+
+    if (*p_reg == 0)
         *cpu.flags |= ZERO_FLAG;
 }
 
 void RR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     cpu.compute_current_opcode_groupings(x, y, z);
-    rotate_right(cpu, cpu.registers[z]);
+    rotate_right(cpu, cpu.get_register(z));
 }
 
 void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
@@ -912,14 +950,26 @@ void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void RRCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     uint8_t value = *cpu.p_A;
+
+    cpu.reset_flags();
     *cpu.flags |= (value & 1) << 4;
     *cpu.p_A = value >> 1 | (value << 7 & (1 << 7));
 
-    *cpu.flags &= ~SUB_FLAG;
-    *cpu.flags &= ~H_FLAG;
-    *cpu.flags &= ~ZERO_FLAG;
-
     if (*cpu.p_A == 0)
+        *cpu.flags |= ZERO_FLAG;
+}
+
+void RRC(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    cpu.compute_current_opcode_groupings(x, y, z);
+    uint8_t *p_reg = cpu.get_register(z);
+
+    uint8_t value = *p_reg;
+    cpu.reset_flags();
+    *cpu.flags |= (value & 1) << 4;
+    *p_reg = value >> 1 | (value << 7 & (1 << 7));
+
+    if (*p_reg == 0)
         *cpu.flags |= ZERO_FLAG;
 }
 
@@ -927,15 +977,13 @@ void SRL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     cpu.compute_current_opcode_groupings(x, y, z);
 
-    *cpu.flags &= ~ZERO_FLAG;
-    *cpu.flags &= ~SUB_FLAG;
-    *cpu.flags &= ~H_FLAG;
+    cpu.reset_flags();
     // *cpu.flags &= ~CONST_CARRY_FLAG;
 
     *cpu.flags = ((*cpu.get_register(z) & 1) << 4); // Bit 0 to carry
     *cpu.get_register(z) >>= 1;
 
-    if (*cpu.registers[z] == 0)
+    if (*cpu.get_register(z) == 0)
         *cpu.flags |= ZERO_FLAG;
 }
 
@@ -957,15 +1005,25 @@ void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     cpu.compute_current_opcode_groupings(x, y, z);
 
+    cpu.reset_flags();
     *cpu.flags = (((*cpu.get_register(z) >> 7) & 1) << 4); // Bit 7 to carry
-
-    *cpu.flags &= ~SUB_FLAG;
-    *cpu.flags &= ~H_FLAG;
 
     *cpu.get_register(z) <<= 1;
 
-    *cpu.flags &= ~ZERO_FLAG;
-    if (*cpu.registers[z] == 0)
+    if (*cpu.get_register(z) == 0)
+        *cpu.flags |= ZERO_FLAG;
+}
+
+void SRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    // Shift Right Arithmetic. MSB (bit 7) is unchanged, rest is shifted along with MSB
+    cpu.compute_current_opcode_groupings(x, y, z);
+    cpu.reset_flags();
+
+    *cpu.flags |= ((*cpu.get_register(z) & 1) << 4); // Bit 0 to carry
+    *cpu.get_register(z) = (*cpu.get_register(z) & 0x80) | (*cpu.get_register(z) >> 1);
+    
+    if (*cpu.get_register(z) == 0)
         *cpu.flags |= ZERO_FLAG;
 }
 
@@ -1003,7 +1061,7 @@ void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2)
     if (opcode == 0x36)
         p_value = cpu.m.get_pointer(cpu.HL);
     else
-        p_value = cpu.registers[z];
+        p_value = cpu.get_register(z);
 
     *p_value = ((*p_value & 0xF0) >> 4) | ((*p_value & 0x0F) << 4);
 
