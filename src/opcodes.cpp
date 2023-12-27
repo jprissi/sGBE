@@ -80,7 +80,7 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
     }
 
     uint16_t address;
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
 
     switch (opcode)
     {
@@ -158,7 +158,7 @@ void LD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     uint8_t *p_in;
     // uint8_t *p_out;
     uint16_t address_out;
@@ -181,7 +181,7 @@ void LDH(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void ADD16(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t p = (y & 6) >> 1;
 
@@ -203,7 +203,7 @@ void ADD16(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void ADD8(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
 
     if (opcode != 0xC6)
         arg1 = *cpu.get_register(z);
@@ -222,7 +222,7 @@ void ADD8(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     if (opcode == 0xe8)
@@ -258,7 +258,7 @@ void ADD(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
 
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     if (opcode != 0xce)
@@ -282,7 +282,7 @@ void ADC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     cpu.reset_flags();
@@ -308,7 +308,7 @@ void SUB(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
     if (y == 3)
     {
@@ -343,7 +343,7 @@ void SBC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void INC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t p = (y & 6) >> 1;
 
@@ -383,7 +383,7 @@ void INC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     uint8_t p = (y & 6) >> 1;
@@ -436,7 +436,7 @@ void DEC(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void JP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     uint16_t address;
@@ -484,7 +484,7 @@ void JP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void JR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
     int8_t offset = (int8_t)arg1;
 
@@ -527,7 +527,7 @@ void JR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void AND(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
     uint8_t value;
     if (opcode == 0xe6)
@@ -557,7 +557,7 @@ void AND(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
 
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     if (x == 2)
@@ -588,7 +588,7 @@ void XOR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void OR(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     if (opcode == 0xf6)
@@ -621,7 +621,7 @@ void EI(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void CP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     // x = 2, y=7
 
     uint8_t value;
@@ -668,7 +668,7 @@ void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void CALL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     // uint16_t addr = arg1 << 8 | arg2;
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
 
     bool cc = false;
 
@@ -776,7 +776,7 @@ void RETI(CPU &cpu, uint8_t arg1, uint8_t arg2)
 void RST(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     // Restart
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     cpu.push(cpu.PC + 1); // Push next address to avoid loop
@@ -996,7 +996,7 @@ void DAA(CPU &cpu, uint8_t arg1, uint8_t arg2)
 
 void SWAP(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
-    uint8_t opcode = cpu.current_opcode;
+    uint8_t opcode = cpu.current_opcode_hex;
     cpu.compute_current_opcode_groupings(x, y, z);
 
     uint8_t *p_value;

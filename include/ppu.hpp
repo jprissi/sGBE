@@ -2,7 +2,6 @@
 #define PPU_H
 
 #include <cstdint>
-// #include <queue>
 #include <stdio.h>
 #include <SDL2/SDL.h>
 
@@ -14,10 +13,7 @@
 #define DOT 2 ^ (-22) // Seconds
 #define FPS 59.7      // Hertz
 
-// https://gbdev.io/pandocs/Rendering.html
-// https://rylev.github.io/DMG-01/public/book/graphics/tile_ram.html
-
-#define LCDC 0xFF40 // LCDC 
+#define LCDC 0xFF40 // LCDC
 #define STAT 0xFF41
 
 #define SCY 0xFF42 // ScrollY
@@ -36,6 +32,9 @@
 #define COLOR_PALETTE_BG 0xFF47
 #define COLOR_PALETTE_OBJ 0xFF48
 
+// https://gbdev.io/pandocs/Rendering.html
+// https://rylev.github.io/DMG-01/public/book/graphics/tile_ram.html
+
 enum ppu_mode
 {
     HORIZONTAL_BLANK,
@@ -53,37 +52,31 @@ enum tile
 
 class PPU
 {
-    uint8_t durations[4] = {51, 144, 20, 43};
-
 private:
-    void draw_all_sprites();
-    void set_color(uint8_t color);
+    ppu_mode mode = HORIZONTAL_BLANK;
+    uint8_t modes_durations[4] = {51, 144, 20, 43};
 
     uint16_t sprites_adresses[10];
     uint8_t num_sprites;
-    // const SDL_Point p_points[SCREEN_WIDTH*SCREEN_HEIGHT];
-
-    Uint64 last_frame_timestamp;
-
-    ppu_mode mode = HORIZONTAL_BLANK;
-    // int ly = 0x00; // 0-153 and 00h when off
+    uint64_t timestamp_previous_frame;
+    uint16_t cycles_elapsed = 0;
 
     uint8_t *p_LCDC; // LCDC
     uint8_t *p_SCX;  // Scroll Y
     uint8_t *p_SCY;  // Scroll Y
     uint8_t *p_LY;
 
+    uint8_t *p_color_palette_bg;
+    uint8_t *p_color_palette_obj;
+
     bool obj_mode, draw_fg, draw_bg_win;
 
+    void draw_all_sprites();
     void draw_sprite(uint16_t address, uint8_t x_pos, uint8_t y_pos);
     void draw_tile(uint16_t tile_address, uint8_t x_pos, uint8_t y_pos);
     void draw_foreground_sprites();
     void draw_background_tiles();
-
-    uint8_t *p_color_palette_bg;
-    uint8_t *p_color_palette_obj;
-
-    uint16_t cycles_elapsed = 0;
+    void set_color(uint8_t color);
 
     MemoryController *p_memory;
     CPU *cpu;
@@ -99,14 +92,13 @@ private:
 public:
     PPU(CPU *cpu, MemoryController *p_m, View *p_view, bool debug_implementation);
 
-    void set_memory_controller(MemoryController *p_m);
+    void update(uint8_t cpu_cycles);
+    void switch_mode();
+
     void OAM_scan();
     void send_pixels();
     void wait_h();
     void wait_v();
-    void switch_mode();
-
-    void update(uint8_t cpu_cycles);
 };
 
 // class PixelFetcher
@@ -125,6 +117,5 @@ public:
 
 //     void clear_queues(); // Called at the beginning of mode 3
 // };
-
 
 #endif

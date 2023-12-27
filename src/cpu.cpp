@@ -22,24 +22,25 @@ CPU::CPU(std::string cartridge_path, bool debug_implementation)
     this->assert_register_init();
     this->m.write(0xFF44, 0x90);
     // Skip boot rom
-    this->m.boot_rom_enabled = false;
+    this->m.disable_bootrom();
   }
   this->default_register_init();
-  this->m.boot_rom_enabled = false; // Quick shortcut for startup
+  this->m.disable_bootrom(); // Quick shortcut for startup
   this->m.load_cartridge(cartridge_path);
 }
 
-uint8_t CPU::step(uint8_t opcode, bool log_to_file)
+uint8_t CPU::fetch()
 {
-  // main cpu loop
+  uint8_t opcode_hex = m.read(PC);
+  return opcode_hex;
+}
+
+uint8_t CPU::execute(uint8_t opcode, bool log_to_file)
+{
   // http://www.z80.info/decoding.htm
-  if (!this->halt)
-  {
-    if (log_to_file)
-      this->log(this->log_file);
-  }
+
   // Everything we need to run instructions
-  std::string mnemonic("");
+  std::string mnemonic = "";
   int num_args, cycles = 0;
   bool prefixed = false;
   uint8_t prefix;
@@ -51,24 +52,24 @@ uint8_t CPU::step(uint8_t opcode, bool log_to_file)
     this->panic();
   }
 
-  this->current_opcode = opcode;
-  opcodes_s current_op = opcodes[opcode];
+  this->current_opcode_hex = opcode;
+  opcodes_s current_opcode = opcodes[opcode];
 
-  if (current_op.mn == "PREFIX")
+  if (current_opcode.mn == "PREFIX")
   {
     prefixed = true;
     prefix = opcode; // should be CB
-    opcode = this->m.read(this->PC + 1);
-    this->current_opcode = opcode;
+    opcode = m.read(PC + 1);
+    current_opcode_hex = opcode;
 
-    current_op = prefixed_opcodes[opcode];
+    current_opcode = prefixed_opcodes[opcode];
   }
 
-  mnemonic = (char *)current_op.mn;
-  num_args = current_op.length - 1;
-  cycles = current_op.cycles;
+  mnemonic = (char *)current_opcode.mn;
+  num_args = current_opcode.length - 1;
+  cycles = current_opcode.cycles;
   // void *(func)(void *) = current_op.func;
-  void (*func)(CPU &cpu, uint8_t arg1, uint8_t arg2) = current_op.func;
+  void (*func)(CPU &cpu, uint8_t arg1, uint8_t arg2) = current_opcode.func;
   // auto func = current_op.func;
 
   uint8_t args[2] = {0, 0};
@@ -136,7 +137,7 @@ uint8_t CPU::step(uint8_t opcode, bool log_to_file)
       std::cout << " \t";
     }
 
-    std::cout << "\t" << current_op.label << " ";
+    std::cout << "\t" << current_opcode.label << " ";
 
     // Run instruction
     (*func)(*this, args[0], args[1]);
@@ -173,7 +174,8 @@ uint8_t CPU::step(uint8_t opcode, bool log_to_file)
   return cycles;
 }
 
-void CPU::reset_flags(){
+void CPU::reset_flags()
+{
   *flags = 0x00;
 }
 
@@ -220,18 +222,18 @@ uint16_t CPU::pop()
 void CPU::default_register_init()
 {
   // Default value requested by Gameboy Doctor
-  this->SP = 0x100;
-  *this->p_A = 0x01;
-  *this->flags = 0xB0;
-  *this->p_B = 0x00;
-  *this->p_C = 0x13;
-  *this->p_D = 0x00;
-  *this->p_E = 0xd8;
-  *this->p_H = 0x01;
-  *this->p_L = 0x4d;
-  this->SP = 0xfffe;
-  this->PC = 0x0100;
-  this->m.boot_rom_enabled = false;
+  // SP = 0x100;
+  *p_A = 0x01;
+  *flags = 0xB0;
+  *p_B = 0x00;
+  *p_C = 0x13;
+  *p_D = 0x00;
+  *p_E = 0xd8;
+  *p_H = 0x01;
+  *p_L = 0x4d;
+  SP = 0xfffe;
+  PC = 0x0100;
+  m.disable_bootrom();
 }
 
 void CPU::enable_interrupts()
@@ -274,7 +276,7 @@ void CPU::handle_interrupts()
       // NOP(*this, 0, 0);
       // NOP(*this, 0, 0);     // Two M-cycles pass while nothing happens
       // this->push(this->PC); // 2 M-cycles
-      
+
       this->PC -= this->next_instruction_relative_pos; // quick fix because of call incrementing pc and interrupts being called after pc is updated
       this->call((uint8_t)((i * 8) + 0x40) + this->next_instruction_relative_pos, (uint8_t)0x00);
     }
@@ -347,7 +349,7 @@ void CPU::request_interrupt(uint8_t interrupt)
 
 void CPU::compute_current_opcode_groupings(uint8_t &x, uint8_t &y, uint8_t &z)
 {
-  uint8_t opcode = this->current_opcode;
+  uint8_t opcode = this->current_opcode_hex;
   // this->compute_opcode_groupings(opcode, x, y, z);
   // Compute instruction groupings
   x = opcode >> 6;
@@ -391,6 +393,11 @@ void CPU::set_breakpoint(uint16_t address)
   this->breakpoint = address;
 }
 
+void CPU::log()
+{
+  log(this->logfile);
+}
+
 void CPU::log(std::ofstream &log_file)
 {
   // Log used with gameboy-doctor
@@ -415,12 +422,13 @@ void CPU::log(std::ofstream &log_file)
 void CPU::print_registers()
 {
   std::cout << std::hex;
-  std::cout << std::endl << "Interrupts enabled: " << std::setw(1) << (int)(this->interrupts_enabled) << std::endl;
+  std::cout << std::endl
+            << "Interrupts enabled: " << std::setw(1) << (int)(this->interrupts_enabled) << std::endl;
   std::cout << "IE = 0x" << std::setw(2) << (int)(*this->p_IE) << " (" << std::bitset<8>(*this->p_IE) << ")" << std::endl;
   std::cout << "IF = 0x" << std::setw(2) << (int)(*this->p_IF) << " (" << std::bitset<8>(*this->p_IF) << ")" << std::endl;
 
   std::cout << "PC = 0x" << std::setw(4) << (int)(this->PC) << std::endl;
-  std::cout << "flags = 0x" << (int)(*this->flags) << "; " << std::bitset<8>(*this->flags) << "; boot rom enabled: " << (int)this->m.boot_rom_enabled << std::endl;
+  std::cout << "flags = 0x" << (int)(*this->flags) << "; " << std::bitset<8>(*this->flags) << std::endl; //<< "; boot rom enabled: " << (int)this->m.boot_rom_enabled << std::endl;
   std::cout << "A = 0x" << std::setw(2) << (int)(*this->p_A) << " (" << std::bitset<8>(*this->p_A) << ")" << std::endl;
   std::cout << "B = 0x" << std::setw(2) << (int)(*this->p_B) << " (" << std::bitset<8>(*this->p_B) << ")" << std::endl;
   std::cout << "C = 0x" << std::setw(2) << (int)(*this->p_C) << " (" << std::bitset<8>(*this->p_C) << ")" << std::endl;

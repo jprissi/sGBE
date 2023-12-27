@@ -36,8 +36,6 @@
 #define H_FLAG (1 << H)
 #define CARRY_FLAG (1 << C)
 
-
-
 class CPU
 {
 
@@ -56,9 +54,8 @@ private:
   void handle_interrupts();
 
 public:
-  
   uint8_t timeout = 30;
-  std::ofstream log_file;
+  std::ofstream logfile;
   bool skip_interrupts = false;
   bool interrupts_enabled = false; // IME flag, disabled at start
   bool halt = false;
@@ -79,6 +76,12 @@ public:
 
   uint8_t *flags = p_F; // [Z, N, H, C, 0, 0, 0, 0] 8 bits, the same as F register
 
+  // 7 6 5 4 3 2 1 0
+  // - - - J S T L V
+  // J - Joypad, S - Serial, T - Timer, L - LCD, V - VBlank
+  uint8_t *p_IF; // Interrupt Flag (0xFF0F)
+  uint8_t *p_IE; // Interrupt Enable (0xFFFF)
+
   uint16_t SP = 0xFFE;
   uint16_t PC = 0x0000; // Before boot
 
@@ -98,40 +101,33 @@ public:
   };
 
   MemoryController m;
+  uint8_t next_instruction_relative_pos;
+  uint8_t current_opcode_hex;
+  bool step_by_step = false;
 
   CPU(std::string cartridge_path, bool debug_implementation = false);
 
-  uint8_t next_instruction_relative_pos;
-  uint8_t current_opcode;
+  uint8_t fetch();
+  uint8_t execute(uint8_t opcode, bool log_to_file = false);
 
   void set_breakpoint(uint16_t address);
-
   void log(std::ofstream &file);
-  bool step_by_step = false;
+  void log();
 
   bool enable_interrupts_next = false;  // Or use a counter instead
   bool disable_interrupts_next = false; // Or use a counter instead
   void enable_interrupts();
   void disable_interrupts();
   void request_interrupt(uint8_t interrupt);
-
-  // 7 6 5 4 3 2 1 0
-  // - - - J S T L V
-  // J - Joypad, S - Serial, T - Timer, L - LCD, V - VBlank
-  uint8_t *p_IF; // Interrupt Flag (0xFF0F)
-  uint8_t *p_IE; // Interrupt Enable (0xFFFF)
-
   void reset_flags();
+
   uint8_t *get_register(uint8_t i);
-  uint8_t step(uint8_t opcode, bool log_to_file = false);
   void call(uint8_t arg1, uint8_t arg2);
   void push(uint16_t value);
   uint16_t pop();
 
-  //void compute_opcode_groupings(uint8_t &opcode, uint8_t &x, uint8_t &y, uint8_t &z);
   void compute_current_opcode_groupings(uint8_t &x, uint8_t &y, uint8_t &z);
   void print_registers();
-
 
   void panic(); // Custom method to handle our own implementation mistakes
 };

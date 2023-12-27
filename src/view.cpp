@@ -9,8 +9,10 @@ View::View(CPU *p_cpu, bool debug_implementation)
 {
     this->debug = debug_implementation;
     this->p_cpu = p_cpu;
+
     if (debug_implementation)
         return;
+
     SDL_Window *window = initWindow();
     this->app.renderer = initGraphics(window);
     this->app.window = window;
@@ -20,59 +22,14 @@ View::~View()
 {
     if (this->debug)
         return;
+
     SDL_DestroyRenderer(this->app.renderer);
     SDL_DestroyWindow(this->app.window);
     SDL_Quit();
 }
 
-// void View::render_tilemap(CPU &cpu, SDL_Renderer *renderer)
-// {
-//     // https://gbdev.io/pandocs/Tile_Data.html
-
-//     SDL_SetRenderDrawColor(renderer, 0xE0, 0xF8, 0xD0, SDL_ALPHA_OPAQUE);
-//     SDL_RenderClear(renderer);
-//     SDL_SetRenderDrawColor(renderer, 0x08, 0x18, 0x20, SDL_ALPHA_OPAQUE);
-
-//     uint16_t i = 0;
-//     uint16_t start = 0x8000; // 0x80d0;
-//     uint16_t end = start + 48 * 16;
-//     for (uint16_t setress = start; setress <= end; setress += 16) // Iterate over each block
-//     {
-//         i = setress - start;
-//         std::cout << setress << std::endl;
-//         uint16_t block_idx = i / 16;
-//         std::cout << block_idx << std::endl;
-//         uint16_t block_x = block_idx % 16;
-//         uint16_t block_y = block_idx / 16;
-
-//         // Block r, l
-//         for (int row = 0; row < 8; row++)
-//         {
-//             // Each line has 2 bytes
-//             uint16_t value_lsb = cpu.m.read(setress + 2 * row);
-//             uint16_t value_msb = cpu.m.read(setress + 2 * row + 1);
-
-//             for (int col = 0; col < 8; col++)
-//             {
-//                 int value = (value_lsb & (1 << (7 - col))) >> (7 - col) | (value_msb & (1 << (7 - col))) >> (7 - col) << 1;
-//                 if (value != 0)
-//                 {
-//                     int x = block_x * 8 + col;
-//                     int y = block_y * 8 + row;
-//                     SDL_RenderDrawPoint(renderer, x, y);
-//                 }
-//                 std::cout << value << " ";
-//             }
-
-//             std::cout << std::endl;
-//         }
-//     }
-//     SDL_RenderPresent(renderer);
-// }
-
 SDL_Window *View::initWindow()
 {
-    // returns zero on success else non-zero
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0)
     {
         printf("error initializing SDL: %s\n", SDL_GetError());
@@ -84,15 +41,15 @@ SDL_Window *View::initWindow()
                                           SDL_WINDOWPOS_CENTERED,
                                           SCREEN_WIDTH * SCALE,
                                           SCREEN_HEIGHT * SCALE, 0);
-    // SDL_SetWindowBordered(window, SDL_TRUE);
 
     return window;
 }
+
 SDL_Renderer *View::initGraphics(SDL_Window *window)
 {
     // triggers the program that controls
     // your graphics hardware and sets flags
-    Uint32 render_flags = SDL_RENDERER_ACCELERATED; 
+    Uint32 render_flags = SDL_RENDERER_ACCELERATED;
     render_flags |= SDL_RENDERER_PRESENTVSYNC; // 60Hz
 
     // creates a renderer to render our images
@@ -101,8 +58,6 @@ SDL_Renderer *View::initGraphics(SDL_Window *window)
 
     SDL_SetRenderDrawColor(renderer, 0xE0, 0xF8, 0xD0, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
-    // SDL_SetRenderDrawColor(renderer, 0x08, 0x18, 0x20, SDL_ALPHA_OPAQUE);
-
     return renderer;
 }
 
@@ -111,12 +66,13 @@ bool View::handle_SDL_events(CPU &cpu)
 
     SDL_Event event;
     bool quit = false;
-    
+
+    // State is saved using two 8 bit variables, set to 1 if false and 0 if true
     uint8_t input_a = 0x0F;
     uint8_t input_b = 0x0F;
+
     while (SDL_PollEvent(&event))
     {
-        
         switch (event.type)
         {
         case SDL_KEYDOWN:
@@ -128,7 +84,6 @@ bool View::handle_SDL_events(CPU &cpu)
             case SDLK_c:
                 p_cpu->step_by_step = false;
                 break;
-            
             case SDLK_a:
                 input_a &= ~(1 << 0);
                 break;

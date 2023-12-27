@@ -16,14 +16,10 @@
 
 // http://www.z80.info/decoding.htm
 
-#define ROM_OFFSET 0x00 // Cartridge starts at address 0
-
-std::string boot_rom_path = "../rom/dmg_boot.bin";
-
 MemoryController::MemoryController()
 {
   bool is_boot = true;
-  this->write_file_to_memory(boot_rom_path, is_boot);
+  this->copy_file_to_memory(boot_rom_path, is_boot);
   this->rom[0xFF00] = 0xFF; // Joypad input defaults to 0xFF at startup
 }
 
@@ -31,19 +27,16 @@ void MemoryController::DMA_transfer()
 {
   // https://gbdev.io/pandocs/OAM_DMA_Transfer.html
   // 160 machine cycles
-  // Lots of subtleties here (should block ppu, ...)
-  std::cout << "DMA transfer!" << std::endl;
-  // std::cin.ignore();
+  // Lots of additional subtleties in here (should block ppu, ...)
+
   uint16_t source = this->read(DMA) << 8;
   uint16_t destination = 0xFE00;
   std::size_t size = 0x9f;
 
   uint8_t *src_address = this->get_pointer(source);
-  std::cout << std::hex << "source: " << (int)source << std::endl;
   uint8_t *dst_address = this->get_pointer(destination);
 
   std::memcpy(dst_address, src_address, size);
-  // std::cin.ignore();
 }
 
 void MemoryController::write(uint16_t address, uint8_t value)
@@ -253,10 +246,10 @@ void MemoryController::set_joypad(uint8_t a, uint8_t b)
 
 void MemoryController::load_cartridge(std::string &file_path)
 {
-  this->write_file_to_memory(file_path);
+  this->copy_file_to_memory(file_path);
 }
 
-void MemoryController::write_file_to_memory(std::string &file_path, bool is_boot)
+void MemoryController::copy_file_to_memory(std::string &file_path, bool is_boot)
 {
   // Load ROM to memory
 
@@ -275,14 +268,14 @@ void MemoryController::write_file_to_memory(std::string &file_path, bool is_boot
     exit(1);
   }
 
-  // uint8_t *p_rom_buffer;
   input.seekg(0, std::ios::end);
   std::size_t size = input.tellg();
-  std::cout << "ROM size: " << size << " bytes" << std::endl;
   std::filebuf *pbuf = input.rdbuf();
   pbuf->pubseekpos(0, input.in);
-  char *buffer = (char *)(target + ROM_OFFSET);
+  char *buffer = (char *)(target);
   pbuf->sgetn(buffer, size);
+
+  std::cout << "ROM size: " << size << " bytes" << std::endl;
 
   input.close();
 }
@@ -291,3 +284,13 @@ uint8_t *MemoryController::get_pointer(uint16_t address)
 {
   return &this->rom[address];
 };
+
+void MemoryController::enable_bootrom()
+{
+  boot_rom_enabled = true;
+}
+
+void MemoryController::disable_bootrom()
+{
+  boot_rom_enabled = false;
+}
