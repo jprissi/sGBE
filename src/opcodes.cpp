@@ -677,7 +677,7 @@ void CPL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     *cpu.p_A = ~*cpu.p_A;
     
-    cpu.reset_flags();
+    // cpu.reset_flags();
     *cpu.flags |= SUB_FLAG;
     *cpu.flags |= H_FLAG;
 }
@@ -998,7 +998,7 @@ void CCF(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     *cpu.flags &= ~SUB_FLAG;
     *cpu.flags &= ~H_FLAG;
-    *cpu.flags = !(CARRY_FLAG & *cpu.flags);
+    *cpu.flags ^= CARRY_FLAG;
 }
 
 void SLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
