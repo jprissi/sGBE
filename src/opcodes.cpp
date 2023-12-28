@@ -870,46 +870,7 @@ void rotate_right(CPU &cpu, uint8_t *p_reg)
 void RL(CPU &cpu, uint8_t arg1, uint8_t arg2)
 {
     cpu.compute_current_opcode_groupings(x, y, z);
-    // std::cout << std::endl << "z=" << (int)z << std::endl;
-    // cpu.print_registers();
-    // // std::cout << "HL= " << (int)*cpu.get_register(6) << std::endl;
-    // std::cout << "(HL)= " << std::bitset<16>((int)*cpu.get_register(6)) << std::endl;
-    
     rotate_left(cpu, cpu.get_register(z));
-    // std::cout << "(HL)= " << std::bitset<16>((int)*cpu.get_register(6)) << std::endl;
-    // cpu.print_registers();
-    // std::cin.ignore();
-}
-
-void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
-{
-    uint8_t carry = (*cpu.flags & CARRY_FLAG) >> 4;
-    uint8_t *p_reg = cpu.registers[7]; // A
-    // Set carry flag to the leftmost bit value
-    cpu.reset_flags();
-
-    if (*p_reg & (1 << 7))
-    {
-        *cpu.flags |= CARRY_FLAG;
-    }
-
-    *p_reg <<= 1;
-    *p_reg += carry;
-
-    if (*p_reg == 0)
-        *cpu.flags |= ZERO_FLAG;
-}
-
-void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
-{
-    uint8_t value = *cpu.p_A;
-
-    cpu.reset_flags();
-    *cpu.flags |= (value >> 7) << 4;
-    *cpu.p_A = value << 1 | value >> 7;
-
-    if (*cpu.p_A == 0)
-        *cpu.flags |= ZERO_FLAG;
 }
 
 void RLC(CPU &cpu, uint8_t arg1, uint8_t arg2)
@@ -933,17 +894,16 @@ void RR(CPU &cpu, uint8_t arg1, uint8_t arg2)
     rotate_right(cpu, cpu.get_register(z));
 }
 
-void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
-{
-    rotate_right(cpu, cpu.p_A); // register 'A'
-
-    /** According to BLARGG, manual is wrong about flags
+/** According to BLARGG, manual is wrong about flags.
      Z flag is always set to zero, except for extented instructions
-     RLCA, RLA, RRCA, RRA instructions: the flags are described wrong in the CPU manual.
-     after the execution C contains the rotated bit while N, H and Z are always 0.
+     RLCA, RLA, RRCA, RRA instructions: the flag description is wrong in the CPU manual.
+     After the execution C contains the rotated bit while N, H and Z are always 0.
      The equivalent instructions in the extended CB opcode space set Z if the result is 0
      This last part is correctly documented */
 
+void RRA(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    rotate_right(cpu, cpu.p_A); // register 'A'
     (*cpu.flags) &= ~ZERO_FLAG;
 }
 
@@ -954,9 +914,31 @@ void RRCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
     cpu.reset_flags();
     *cpu.flags |= (value & 1) << 4;
     *cpu.p_A = value >> 1 | (value << 7 & (1 << 7));
+}
 
-    if (*cpu.p_A == 0)
-        *cpu.flags |= ZERO_FLAG;
+void RLCA(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    uint8_t value = *cpu.p_A;
+
+    cpu.reset_flags();
+    *cpu.flags |= (value >> 7) << 4;
+    *cpu.p_A = value << 1 | value >> 7;
+}
+
+void RLA(CPU &cpu, uint8_t arg1, uint8_t arg2)
+{
+    uint8_t carry = (*cpu.flags & CARRY_FLAG) >> 4;
+    uint8_t *p_reg = cpu.registers[7]; // A
+    // Set carry flag to the leftmost bit value
+    cpu.reset_flags();
+
+    if (*p_reg & (1 << 7))
+    {
+        *cpu.flags |= CARRY_FLAG;
+    }
+
+    *p_reg <<= 1;
+    *p_reg += carry;
 }
 
 void RRC(CPU &cpu, uint8_t arg1, uint8_t arg2)
